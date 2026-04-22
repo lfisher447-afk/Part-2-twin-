@@ -1,0 +1,13 @@
+{
+  "name": "bingebox-omega",
+  "version": "4.0.0",
+  "description": "BingeBox Omega — Ultimate Cinematic Streaming Platform",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": { "node": ">=18.x" },
+  "dependencies": {},
+  "devDependencies": { "vercel": "latest" },
+  "license": "MIT"
+}
