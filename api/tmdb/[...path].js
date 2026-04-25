@@ -1,72 +1,138 @@
 'use strict';
-// BingeBox Omega 4.0 — /api/tmdb/[...path].js (Vercel Serverless)
-const https = require('https');
+// BingeBox Omega 5.1 — /api/tmdb/[...path].js (Production Ready)
 
-const TMDB_KEY  = process.env.TMDB_API_KEY || '15d2ea6d0dc1d476efbca3eba2b9bbfb';
-const TMDB_HOST = 'api.themoviedb.org';
+const TMDB_KEY = process.env.TMDB_API_KEY || '15d2ea6d0dc1d476efbca3eba2b9bbfb'; // Keep your fallback if you rely on it
+const TMDB_HOST = 'https://api.themoviedb.org/3';
 
-// Warm lambda cache
-const _cache = new Map();
-
-const TTL = [
-  ['/genre',    60*60_000], ['/person',   30*60_000],
-  ['/movie',    10*60_000], ['/tv',       10*60_000],
-  ['/discover',  3*60_000], ['/trending',    60_000],
-  ['/search',      90_000], ['/collection', 30*60_000],
-];
-const getTTL = p => { for (const [k,t] of TTL) if (p.includes(k)) return t; return 5*60_000; };
-
-function prune() {
-  if (_cache.size < 400) return;
-  const now = Date.now();
-  for (const [k,v] of _cache) if (now > v.x) _cache.delete(k);
-  if (_cache.size > 300) [..._cache.keys()].slice(0,100).forEach(k=>_cache.delete(k));
+if (!TMDB_KEY) {
+  console.warn('CRITICAL: TMDB_API_KEY is missing from environment variables.');
 }
 
-function tmdb(tmdbPath, params) {
-  return new Promise((resolve, reject) => {
-    const qs = new URLSearchParams({ api_key: TMDB_KEY, ...params }).toString();
-    const opts = {
-      hostname: TMDB_HOST, method: 'GET',
-      path: `/3${tmdbPath}?${qs}`,
-      headers: { Accept: 'application/json', 'User-Agent': 'BingeBox-Omega/4.0' },
-      timeout: 7000,
-    };
-    const req = https.request(opts, res => {
-      let body = '';
-      res.setEncoding('utf8');
-      res.on('data', c => body += c);
-      res.on('end', () => {
-        if (res.statusCode === 429) {
-          const e = Object.assign(new Error('rate_limited'), { status: 429, retry: res.headers['retry-after'] || '5' });
-          return reject(e);
-        }
-        if (res.statusCode >= 400) return reject(Object.assign(new Error(`TMDB ${res.statusCode}`), { status: res.statusCode }));
-        try { resolve(JSON.parse(body)); } catch { reject(Object.assign(new Error('parse_error'), { status: 502 })); }
-      });
+// ── L1 Cache (Warm Lambda Memory) ──────────────────────────────────────────
+const l1Cache = new Map();
+const CACHE_MAX_KEYS = 350;
+
+// Configurable TTLs (in seconds) depending on how fast content becomes stale
+const TTL_MAP = new Map([
+  ['/genre', 3600],       // 1 hour
+  ['/person', 1800],      // 30 mins['/movie', 600],        // 10 mins
+  ['/tv', 600],           // 10 mins
+  ['/collection', 1800],  // 30 mins
+  ['/discover', 180],     //  3 mins
+  ['/search', 90],        // 1.5 mins['/trending', 60],      //  1 min
+]);
+
+// Determine TTL based on the TMDB path
+const getTTL = (path) => {
+  for (const [key, ttl] of TTL_MAP.entries()) {
+    if (path.includes(key)) return ttl;
+  }
+  return 300; // Default: 5 minutes fallback
+};
+
+// O(1) eviction for the Map (always pops the oldest inserted key)
+const enforceCacheLimit = () => {
+  if (l1Cache.size >= CACHE_MAX_KEYS) {
+    const oldestKey = l1Cache.keys().next().value;
+    l1Cache.delete(oldestKey);
+  }
+};
+
+// ── Concurrency Limiter (Protects against 429s in Batch POST) ──────────────
+const pLimit = (concurrency) => {
+  let activeCount = 0;
+  const queue =[];
+  
+  const next = () => {
+    if (queue.length === 0 || activeCount >= concurrency) return;
+    activeCount++;
+    const task = queue.shift();
+    task().finally(() => { 
+      activeCount--; 
+      next(); 
     });
-    req.on('error', e => reject(Object.assign(e, { status: 502 })));
-    req.on('timeout', () => { req.destroy(); reject(Object.assign(new Error('timeout'), { status: 504 })); });
-    req.end();
+  };
+  
+  return (fn) => new Promise((resolve, reject) => {
+    queue.push(() => fn().then(resolve).catch(reject));
+    next();
   });
+};
+
+// Max 8 concurrent requests to TMDB to avoid triggering rate limits 
+// or exceeding Vercel's 10-second Hobby plan timeout.
+const limitTMDB = pLimit(8); 
+
+// ── Core Fetch logic ───────────────────────────────────────────────────────
+async function fetchTMDB(tmdbPath, params = {}) {
+  // Guarantee the path starts with a slash
+  const cleanPath = tmdbPath.startsWith('/') ? tmdbPath : `/${tmdbPath}`;
+  
+  // URLSearchParams merges safely. Injecting api_key here ensures it cannot be overridden.
+  const qs = new URLSearchParams({ ...params, api_key: TMDB_KEY }).toString();
+  const url = `${TMDB_HOST}${cleanPath}?${qs}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'BingeBox-Omega/5.1 (Node/Vercel)',
+      },
+      // Automatically reject if TMDB completely stalls out
+      signal: AbortSignal.timeout(7000),
+    });
+
+    if (!response.ok) {
+      const error = new Error(`TMDB Error: ${response.statusText}`);
+      error.status = response.status;
+      if (response.status === 429) {
+        error.retryAfter = response.headers.get('retry-after') || '5';
+      }
+      throw error;
+    }
+
+    return await response.json();
+  } catch (err) {
+    if (err.name === 'TimeoutError') {
+      throw Object.assign(new Error('TMDB request timed out'), { status: 504 });
+    }
+    throw err;
+  }
 }
 
+// ── Main Serverless Handler ────────────────────────────────────────────────
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Set global CORS policy
+  res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-BingeBox-Version');
+  
+  // Pre-flight check response
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  // ── BATCH POST ──────────────────────────────────────────────────────────
+  // ── BATCH POST (Handles Multiple TMDB requests in one call) ──────────────
   if (req.method === 'POST') {
-    let body = '';
-    req.on('data', c => body += c);
-    await new Promise(r => req.on('end', r));
     try {
-      const { requests } = JSON.parse(body);
-      if (!Array.isArray(requests) || !requests.length || requests.length > 20)
-        return res.status(400).json({ error: 'bad_request', message: 'Provide 1–20 requests.' });
-      const settled = await Promise.allSettled(requests.map(({ path: p, params }) => tmdb(p, params || {})));
+      // Intelligently parse body whether it's already an object (Vercel) or raw string
+      const payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const { requests } = payload;
+
+      if (!Array.isArray(requests) || !requests.length || requests.length > 20) {
+        return res.status(400).json({ 
+          error: 'bad_request', 
+          message: 'Provide exactly 1–20 requests in the payload array.' 
+        });
+      }
+
+      // Execute all sub-requests bound by the concurrency limiter
+      const tasks = requests.map(({ path: p, params }) => 
+        limitTMDB(() => fetchTMDB(p, params || {}))
+      );
+      
+      const settled = await Promise.allSettled(tasks);
+      
+      // Structure format exactly as your UI expects
       return res.status(200).json({
         results: settled.map((r, i) => ({
           path: requests[i].path,
@@ -75,44 +141,74 @@ module.exports = async (req, res) => {
           error: r.status === 'rejected' ? r.reason.message : null,
         })),
       });
-    } catch { return res.status(400).json({ error: 'bad_request', message: 'Invalid JSON.' }); }
-  }
-
-  if (req.method !== 'GET') return res.status(405).end();
-
-  // ── GET ─────────────────────────────────────────────────────────────────
-  const urlObj   = new URL(req.url, 'http://localhost');
-  const tmdbPath = urlObj.pathname.replace(/^\/api\/tmdb/, '') || '/';
-  const params   = Object.fromEntries(urlObj.searchParams);
-  delete params.api_key; // never expose key
-
-  const ttl      = getTTL(tmdbPath);
-  const cacheKey = `${tmdbPath}?${new URLSearchParams(params)}`;
-  const cached   = _cache.get(cacheKey);
-
-  if (cached && Date.now() < cached.x) {
-    res.setHeader('X-BingeBox-Cache', 'HIT');
-    res.setHeader('Cache-Control', `public, max-age=${ttl/1000|0}, s-maxage=${ttl/1000|0}, stale-while-revalidate=120`);
-    return res.status(200).json(cached.d);
-  }
-
-  try {
-    const data = await tmdb(tmdbPath, params);
-    prune();
-    _cache.set(cacheKey, { d: data, x: Date.now() + ttl });
-    res.setHeader('X-BingeBox-Cache', 'MISS');
-    res.setHeader('Cache-Control', `public, max-age=${ttl/1000|0}, s-maxage=${ttl/1000|0}, stale-while-revalidate=120`);
-    return res.status(200).json(data);
-  } catch (err) {
-    // Serve stale rather than error
-    if (cached) {
-      res.setHeader('X-BingeBox-Cache', 'STALE');
-      return res.status(200).json(cached.d);
+    } catch (err) {
+      return res.status(400).json({ error: 'bad_request', message: 'Invalid JSON payload.' });
     }
+  }
+
+  // ── GET ROUTE ────────────────────────────────────────────────────────────
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'method_not_allowed' });
+  }
+
+  // Safely extract routing path (Prevents exact-match TypeErrors in various environments)
+  let tmdbPath = '';
+  if (Array.isArray(req.query?.path)) {
+    tmdbPath = `/${req.query.path.join('/')}`;
+  } else if (req.query?.path) {
+    tmdbPath = `/${req.query.path}`;
+  } else {
+    // Fallback for standard routing without req.query mapping
+    tmdbPath = (req.url || '/').split('?')[0].replace(/^\/api\/tmdb/, '') || '/';
+  }
+
+  // Safely extract query parameters & strip out internal args
+  const params = { ...(req.query || {}) };
+  delete params.path;
+  delete params.api_key; 
+
+  const ttlSeconds = getTTL(tmdbPath);
+  const cacheKey = `${tmdbPath}?${new URLSearchParams(params).toString()}`;
+  const now = Date.now();
+
+  // 1. Check L1 Memory Cache (Fastest)
+  const cached = l1Cache.get(cacheKey);
+  if (cached && now < cached.expiresAt) {
+    res.setHeader('X-BingeBox-L1', 'HIT');
+    res.setHeader('Cache-Control', `public, max-age=${ttlSeconds}, s-maxage=${ttlSeconds}, stale-while-revalidate=120`);
+    return res.status(200).json(cached.data);
+  }
+
+  // 2. Fetch fresh data from TMDB
+  try {
+    const data = await fetchTMDB(tmdbPath, params);
+    
+    // Write to L1 Cache securely
+    enforceCacheLimit();
+    l1Cache.set(cacheKey, { data, expiresAt: now + (ttlSeconds * 1000) });
+
+    res.setHeader('X-BingeBox-L1', 'MISS');
+    res.setHeader('Cache-Control', `public, max-age=${ttlSeconds}, s-maxage=${ttlSeconds}, stale-while-revalidate=120`);
+    return res.status(200).json(data);
+    
+  } catch (err) {
+    // Graceful Degradation: If API fails but we have stale cache, Serve Stale!
+    if (cached) {
+      res.setHeader('X-BingeBox-L1', 'STALE');
+      return res.status(200).json(cached.data);
+    }
+
+    // Pass along 429 Retry-After rules to clients
     if (err.status === 429) {
-      res.setHeader('Retry-After', err.retry || '5');
+      res.setHeader('Retry-After', err.retryAfter || '5');
       return res.status(429).json({ error: 'rate_limited', message: err.message });
     }
-    return res.status(err.status || 502).json({ error: 'tmdb_error', message: err.message, path: tmdbPath });
+
+    // Complete failure response
+    return res.status(err.status || 502).json({ 
+      error: 'tmdb_error', 
+      message: err.message, 
+      path: tmdbPath 
+    });
   }
 };
