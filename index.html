@@ -10,20 +10,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
     <link rel="preconnect" href="https://image.tmdb.org" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      crossorigin="anonymous"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer=""></script>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body class="bb-omega-engine">
-
     <!-- ═══════════════════════════════════════════════════
      LOADER INITIATION SCREEN
     ═══════════════════════════════════════════════════ -->
     <div id="loaderOverlay">
       <div class="loader-logo-wrap">
-        <div class="loader-logo">BingeBox<span class="loader-year">Ω</span></div>
+        <div class="loader-logo">
+          BingeBox
+          <span class="loader-year">Ω</span>
+        </div>
         <div class="loader-track"><div class="loader-bar"></div></div>
         <div class="loader-sub">Initializing Neural Engine...</div>
       </div>
@@ -47,7 +56,8 @@
     <header>
       <nav id="navbar" aria-label="Main Navigation">
         <div class="nav-logo" role="button" aria-label="Home" onclick="goHome()">
-          BingeBox<span class="nav-logo-year">Ω</span>
+          BingeBox
+          <span class="nav-logo-year">Ω</span>
         </div>
 
         <div class="nav-links">
@@ -60,15 +70,15 @@
             <div id="genreDropdown" role="menu"></div>
           </div>
           <button class="nav-link" onclick="toggleWishlistPanel()">My List</button>
-          <div id="trendingTicker" class="nav-link" style="display: flex; gap: 8px;"></div>
+          <div id="trendingTicker" class="nav-link" style="display: flex; gap: 8px"></div>
         </div>
 
         <div class="nav-spacer"></div>
 
         <div class="nav-actions">
-          <span 
-            id="bb-proxy-badge" 
-            title="Detecting connection mode…" 
+          <span
+            id="bb-proxy-badge"
+            title="Detecting connection mode…"
             onclick="_refreshServerStatus()"
             onmouseover="this.style.background = 'rgba(255,255,255,0.15)'"
             onmouseout="this.style.background = 'rgba(255,255,255,0.08)'"
@@ -80,17 +90,35 @@
             <i class="fas fa-search"></i>
           </button>
 
-          <div id="notifToggle" class="nav-btn btn-icon interactive" onclick="Navbar.toggleNotifPanel()" role="button" tabindex="0">
+          <div
+            id="notifToggle"
+            class="nav-btn btn-icon interactive"
+            onclick="Navbar.toggleNotifPanel()"
+            role="button"
+            tabindex="0"
+          >
             <i class="fas fa-bell"></i>
             <span id="notifBadge" class="notification-badge" style="display: none"></span>
           </div>
 
-          <button class="nav-btn btn-icon" onclick="openSettings('appearance')" aria-label="Settings" title="Settings (S)">
+          <button
+            class="nav-btn btn-icon"
+            onclick="openSettings('appearance')"
+            aria-label="Settings"
+            title="Settings (S)"
+          >
             <i class="fas fa-sliders-h"></i>
           </button>
 
           <div id="accountMenu" class="account-menu">
-            <div id="navAvatarImg" class="avatar-trigger outline-hover" onclick="Navbar.toggleAccountDropdown()" role="button" tabindex="0" aria-label="Account menu">
+            <div
+              id="navAvatarImg"
+              class="avatar-trigger outline-hover"
+              onclick="Navbar.toggleAccountDropdown()"
+              role="button"
+              tabindex="0"
+              aria-label="Account menu"
+            >
               <div class="avatar-placeholder">
                 <i class="fas fa-user"></i>
               </div>
@@ -110,27 +138,70 @@
               </div>
               <div class="drop-divider"></div>
               <div class="drop-item" onclick="showProfiles()">
-                <i class="fas fa-user-circle"></i> Switch Profile
+                <i class="fas fa-user-circle"></i>
+                Switch Profile
               </div>
-              <div class="drop-item" onclick="toggleWishlistPanel(); Navbar.closeAccountDropdown();">
-                <i class="fas fa-heart"></i> My List
+              <div
+                class="drop-item"
+                onclick="
+                  toggleWishlistPanel();
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-heart"></i>
+                My List
               </div>
-              <div class="drop-item" onclick="scrollToHistory(); Navbar.closeAccountDropdown();">
-                <i class="fas fa-history"></i> Watch History
+              <div
+                class="drop-item"
+                onclick="
+                  scrollToHistory();
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-history"></i>
+                Watch History
               </div>
               <div class="drop-divider"></div>
-              <div class="drop-item" onclick="openSettings('appearance'); Navbar.closeAccountDropdown();">
-                <i class="fas fa-palette"></i> Appearance
+              <div
+                class="drop-item"
+                onclick="
+                  openSettings('appearance');
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-palette"></i>
+                Appearance
               </div>
-              <div class="drop-item" onclick="openSettings('player'); Navbar.closeAccountDropdown();">
-                <i class="fas fa-cog"></i> Settings
+              <div
+                class="drop-item"
+                onclick="
+                  openSettings('player');
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-cog"></i>
+                Settings
               </div>
-              <div class="drop-item" onclick="openSettings('data'); Navbar.closeAccountDropdown();">
-                <i class="fas fa-chart-bar"></i> My Stats
+              <div
+                class="drop-item"
+                onclick="
+                  openSettings('data');
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-chart-bar"></i>
+                My Stats
               </div>
               <div class="drop-divider"></div>
-              <div class="drop-item" onclick="showKeyboardShortcuts(); Navbar.closeAccountDropdown();">
-                <i class="fas fa-keyboard"></i> Shortcuts
+              <div
+                class="drop-item"
+                onclick="
+                  showKeyboardShortcuts();
+                  Navbar.closeAccountDropdown();
+                "
+              >
+                <i class="fas fa-keyboard"></i>
+                Shortcuts
               </div>
             </div>
           </div>
@@ -150,14 +221,78 @@
 
     <!-- Mobile Nav Overlay -->
     <aside id="mobileNav" class="mobile-nav-panel" role="navigation" aria-label="Mobile navigation">
-      <div class="mobile-nav-link" onclick="goHome(); Navbar.closeMobileMenu();">🏠 Home</div>
-      <div class="mobile-nav-link" onclick="showCategory('movie', 'popular'); Navbar.closeMobileMenu();">🎬 Movies</div>
-      <div class="mobile-nav-link" onclick="showCategory('tv', 'popular'); Navbar.closeMobileMenu();">📺 TV Shows</div>
-      <div class="mobile-nav-link" onclick="toggleWishlistPanel(); Navbar.closeMobileMenu();">❤️ My List</div>
-      <div class="mobile-nav-link" onclick="openSettings(); Navbar.closeMobileMenu();">⚙️ Settings</div>
-      <div class="mobile-nav-link" onclick="showKeyboardShortcuts(); Navbar.closeMobileMenu();">⌨️ Keyboard Shortcuts</div>
-      <div class="mobile-nav-link" onclick="showCategory('tv', 'popular'); Navbar.closeMobileMenu();">🇰🇷 K-Drama</div>
-      <div class="mobile-nav-link" onclick="filterByGenre(28, 'Action'); Navbar.closeMobileMenu();">💥 Action</div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          goHome();
+          Navbar.closeMobileMenu();
+        "
+      >
+        🏠 Home
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          showCategory('movie', 'popular');
+          Navbar.closeMobileMenu();
+        "
+      >
+        🎬 Movies
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          showCategory('tv', 'popular');
+          Navbar.closeMobileMenu();
+        "
+      >
+        📺 TV Shows
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          toggleWishlistPanel();
+          Navbar.closeMobileMenu();
+        "
+      >
+        ❤️ My List
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          openSettings();
+          Navbar.closeMobileMenu();
+        "
+      >
+        ⚙️ Settings
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          showKeyboardShortcuts();
+          Navbar.closeMobileMenu();
+        "
+      >
+        ⌨️ Keyboard Shortcuts
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          showCategory('tv', 'popular');
+          Navbar.closeMobileMenu();
+        "
+      >
+        🇰🇷 K-Drama
+      </div>
+      <div
+        class="mobile-nav-link"
+        onclick="
+          filterByGenre(28, 'Action');
+          Navbar.closeMobileMenu();
+        "
+      >
+        💥 Action
+      </div>
     </aside>
 
     <!-- ═══════════════════════════════════════════════════
@@ -166,7 +301,13 @@
     <div id="searchWrapper" class="search-overlay-fullscreen" role="search">
       <div class="search-inner glass-effect">
         <i class="fas fa-search search-icon-left"></i>
-        <input type="text" id="searchInput" class="search-input-field" placeholder="Search movies, TV shows, actors..." autocomplete="off" />
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input-field"
+          placeholder="Search movies, TV shows, actors..."
+          autocomplete="off"
+        />
         <button class="search-close-btn" onclick="Search.close()"><i class="fas fa-times"></i></button>
       </div>
       <div id="searchSuggestions" class="search-suggestions w-100"></div>
@@ -176,10 +317,8 @@
      MAIN CONTENT
     ═══════════════════════════════════════════════════ -->
     <main id="mainContainer" class="main-wrapper">
-      
       <!-- HOME PAGE -->
       <div id="pageHome" class="page-view relative-container">
-        
         <!-- HERO CAROUSEL -->
         <section id="heroSection" class="hero-section wrapper-full relative-container">
           <div id="heroBackdrop" class="hero-backdrop"></div>
@@ -189,17 +328,19 @@
           <div class="hero-content z-index-content">
             <div class="hero-badges">
               <span class="hero-badge trending border-glow pulse">
-                <i class="fas fa-fire text-orange"></i> Trending #1
+                <i class="fas fa-fire text-orange"></i>
+                Trending #1
               </span>
               <span class="hero-badge" id="heroBadgeType">MOVIE</span>
               <span class="hero-badge" id="heroBadgeYear"></span>
             </div>
-            
+
             <h1 id="heroTitle" class="hero-title-massive font-display">Loading…</h1>
 
             <div class="hero-meta d-flex align-items-center gap-sm">
               <span class="hero-meta-item flex-center" id="heroRating">
-                <i class="fas fa-star" style="color: #f59e0b"></i> —
+                <i class="fas fa-star" style="color: #f59e0b"></i>
+                —
               </span>
               <span class="hero-meta-item dot text-muted">•</span>
               <span class="hero-meta-item font-code" id="heroRuntime">—</span>
@@ -211,24 +352,50 @@
 
             <div class="hero-actions action-row flex-wrap mt-4">
               <button class="btn-hero-play glow-hover" id="heroPlayBtn" onclick="Hero._playHero()">
-                <i class="fas fa-play"></i> Play Now
+                <i class="fas fa-play"></i>
+                Play Now
               </button>
               <button class="btn-hero-info transparent-hover text-light" id="heroInfoBtn" onclick="Hero._infoHero()">
-                <i class="fas fa-info-circle"></i> More Info
+                <i class="fas fa-info-circle"></i>
+                More Info
               </button>
-              <button class="btn-hero-list circle shadow text-light" id="heroListBtn" onclick="Hero._listHero()" aria-label="Add to My List">
+              <button
+                class="btn-hero-list circle shadow text-light"
+                id="heroListBtn"
+                onclick="Hero._listHero()"
+                aria-label="Add to My List"
+              >
                 <i class="fas fa-plus"></i>
               </button>
             </div>
           </div>
 
-          <button class="hero-arrow hero-arrow-left pointer-events-auto" onclick="Hero.prev(); Hero.restartCycle();" aria-label="Previous slide">
+          <button
+            class="hero-arrow hero-arrow-left pointer-events-auto"
+            onclick="
+              Hero.prev();
+              Hero.restartCycle();
+            "
+            aria-label="Previous slide"
+          >
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button class="hero-arrow hero-arrow-right pointer-events-auto" onclick="Hero.next(); Hero.restartCycle();" aria-label="Next slide">
+          <button
+            class="hero-arrow hero-arrow-right pointer-events-auto"
+            onclick="
+              Hero.next();
+              Hero.restartCycle();
+            "
+            aria-label="Next slide"
+          >
             <i class="fas fa-chevron-right"></i>
           </button>
-          <div id="heroDots" class="hero-dots-container absolute-bottom-center z-index-content" role="tablist" aria-label="Hero slides"></div>
+          <div
+            id="heroDots"
+            class="hero-dots-container absolute-bottom-center z-index-content"
+            role="tablist"
+            aria-label="Hero slides"
+          ></div>
         </section>
 
         <!-- Genre Pills -->
@@ -243,7 +410,13 @@
         <section id="historySection" class="container-fluid mt-5 mb-5" style="display: none">
           <div class="history-section-header d-flex justify-between align-items-center mb-3">
             <h2 class="history-section-title text-light font-display">⏱ Recently Watched</h2>
-            <button class="row-see-all text-muted background-transparent hover-text-white transition" onclick="toggleWishlistPanel(); setTimeout(() => switchPanelTab('history', document.querySelector('.panel-tab:last-child')), 100);">
+            <button
+              class="row-see-all text-muted background-transparent hover-text-white transition"
+              onclick="
+                toggleWishlistPanel();
+                setTimeout(() => switchPanelTab('history', document.querySelector('.panel-tab:last-child')), 100);
+              "
+            >
               View All ›
             </button>
           </div>
@@ -257,27 +430,46 @@
           <h2 id="resultsTitle" class="font-display m-0 text-light text-xxl"></h2>
           <div class="results-actions filter-row d-flex gap-sm">
             <button class="results-btn btn-sm btn-outline shadow-sm flex-center" onclick="goHome()">
-              <i class="fas fa-home mr-2"></i> Home
+              <i class="fas fa-home mr-2"></i>
+              Home
             </button>
-            <button id="infiniteScrollBtn" class="results-btn btn-sm btn-outline shadow-sm font-code" onclick="toggleInfiniteScroll()">
+            <button
+              id="infiniteScrollBtn"
+              class="results-btn btn-sm btn-outline shadow-sm font-code"
+              onclick="toggleInfiniteScroll()"
+            >
               🔄 Auto-Load: OFF
             </button>
-            <button class="results-btn btn-sm btn-outline shadow-sm" onclick="sortGrid('rating')" title="Sort by rating">
+            <button
+              class="results-btn btn-sm btn-outline shadow-sm"
+              onclick="sortGrid('rating')"
+              title="Sort by rating"
+            >
               ⭐ Rating
             </button>
             <button class="results-btn btn-sm btn-outline shadow-sm" onclick="sortGrid('year')" title="Sort by year">
               📅 Year
             </button>
-            <button class="results-btn accent btn-sm shadow-sm shadow-accent text-white" onclick="getPersonalRecommendations()" title="Recommendations">
+            <button
+              class="results-btn accent btn-sm shadow-sm shadow-accent text-white"
+              onclick="getPersonalRecommendations()"
+              title="Recommendations"
+            >
               🧠 For You
             </button>
           </div>
         </div>
 
-        <div id="searchResultsGrid" class="results-grid auto-fit-grid pb-5" role="list" aria-label="Search results"></div>
+        <div
+          id="searchResultsGrid"
+          class="results-grid auto-fit-grid pb-5"
+          role="list"
+          aria-label="Search results"
+        ></div>
 
         <button id="loadMoreBtn" class="btn btn-lg btn-outline pill" onclick="loadMore()" style="display: none">
-          <i class="fas fa-chevron-down mr-2"></i> Load More
+          <i class="fas fa-chevron-down mr-2"></i>
+          Load More
         </button>
         <div id="infiniteScrollSentinel" aria-hidden="true" style="height: 10px"></div>
       </div>
@@ -293,25 +485,46 @@
     </div>
 
     <!-- Cinema backdrop trigger mode -->
-    <div id="cinemaBackdrop" class="cinema-lights-dim absolute-fullscreen z-over-content" onclick="_exitCinema()" aria-hidden="true"></div>
+    <div
+      id="cinemaBackdrop"
+      class="cinema-lights-dim absolute-fullscreen z-over-content"
+      onclick="_exitCinema()"
+      aria-hidden="true"
+    ></div>
 
     <!-- ═══════════════════════════════════════════════════
      WISHLIST + HISTORY PANEL (ASIDE RIGHT)
     ═══════════════════════════════════════════════════ -->
-    <aside id="wishlistPanel" class="side-panel shadow-2xl display-flex flex-col h-100vh absolute-right slide-in-right" role="complementary">
+    <aside
+      id="wishlistPanel"
+      class="side-panel shadow-2xl display-flex flex-col h-100vh absolute-right slide-in-right"
+      role="complementary"
+    >
       <div class="panel-header border-bottom p-4 d-flex justify-between align-items-center">
         <h2 class="panel-title font-display text-lg text-white m-0">My BingeBox</h2>
-        <button class="panel-close-btn btn-icon text-muted hover-text-white" onclick="toggleWishlistPanel()" aria-label="Close list">
+        <button
+          class="panel-close-btn btn-icon text-muted hover-text-white"
+          onclick="toggleWishlistPanel()"
+          aria-label="Close list"
+        >
           <i class="fas fa-times text-xl"></i>
         </button>
       </div>
 
       <div class="panel-tabs d-flex px-3 pt-3 gap-sm pb-2 border-bottom">
-        <button class="panel-tab w-50 flex-center py-2 active font-medium text-sm transition" onclick="switchPanelTab('wishlist', this)">
-          <i class="fas fa-heart mr-2"></i> My List
+        <button
+          class="panel-tab w-50 flex-center py-2 active font-medium text-sm transition"
+          onclick="switchPanelTab('wishlist', this)"
+        >
+          <i class="fas fa-heart mr-2"></i>
+          My List
         </button>
-        <button class="panel-tab w-50 flex-center py-2 font-medium text-sm transition" onclick="switchPanelTab('history', this)">
-          <i class="fas fa-history mr-2"></i> History
+        <button
+          class="panel-tab w-50 flex-center py-2 font-medium text-sm transition"
+          onclick="switchPanelTab('history', this)"
+        >
+          <i class="fas fa-history mr-2"></i>
+          History
         </button>
       </div>
 
@@ -320,7 +533,8 @@
           <div id="wishlistEmpty" class="empty-state text-center py-5 text-muted fade-in" style="display: none">
             <i class="fas fa-heart-broken text-4xl mb-3 opacity-50"></i>
             <p class="text-sm line-height-relaxed">
-              Your list is empty.<br />
+              Your list is empty.
+              <br />
               Browse and add titles to start.
             </p>
           </div>
@@ -329,7 +543,10 @@
 
         <div id="panelHistory" class="tab-pane p-3 fade-in" style="display: none">
           <div class="d-flex justify-end mb-2">
-            <button class="history-remove-btn btn btn-sm background-transparent text-muted hover-text-danger text-xs font-code" onclick="_removeHistory()">
+            <button
+              class="history-remove-btn btn btn-sm background-transparent text-muted hover-text-danger text-xs font-code"
+              onclick="_removeHistory()"
+            >
               Clear All
             </button>
           </div>
@@ -341,12 +558,17 @@
     <!-- ═══════════════════════════════════════════════════
      SETTINGS MODAL
     ═══════════════════════════════════════════════════ -->
-    <div id="settingsModal" class="modal-overlay-darken align-center justify-center p-md" role="dialog" aria-modal="true">
+    <div
+      id="settingsModal"
+      class="modal-overlay-darken align-center justify-center p-md"
+      role="dialog"
+      aria-modal="true"
+    >
       <div class="settings-box max-w-4xl w-100 bg-surface border-light rounded-xl shadow-2xl relative-container d-grid">
-        
         <div class="settings-top settings-header d-flex justify-between p-4 border-bottom col-span-full">
           <h2 class="settings-title font-display text-lg text-white m-0 d-flex align-items-center gap-xs">
-            <i class="fas fa-cog"></i> Settings
+            <i class="fas fa-cog"></i>
+            Settings
           </h2>
           <button class="settings-close btn-icon text-muted hover-text-white" onclick="closeSettings()">
             <i class="fas fa-times text-xl"></i>
@@ -354,37 +576,62 @@
         </div>
 
         <div class="settings-layout d-flex h-100 w-100">
-          <div class="settings-tabs settings-sidebar flex-col border-right p-3 gap-xs bg-sidebar min-w-180 hide-scrollbar" role="tablist">
-            <button class="set-tab-btn active" data-tab="appearance" role="tab" onclick="switchSettingsTab('appearance', this)">
-              <i class="fas fa-palette w-icon"></i> Appearance
+          <div
+            class="settings-tabs settings-sidebar flex-col border-right p-3 gap-xs bg-sidebar min-w-180 hide-scrollbar"
+            role="tablist"
+          >
+            <button
+              class="set-tab-btn active"
+              data-tab="appearance"
+              role="tab"
+              onclick="switchSettingsTab('appearance', this)"
+            >
+              <i class="fas fa-palette w-icon"></i>
+              Appearance
             </button>
             <button class="set-tab-btn" data-tab="player" role="tab" onclick="switchSettingsTab('player', this)">
-              <i class="fas fa-play-circle w-icon"></i> Player
+              <i class="fas fa-play-circle w-icon"></i>
+              Player
             </button>
             <button class="set-tab-btn" data-tab="privacy" role="tab" onclick="switchSettingsTab('privacy', this)">
-              <i class="fas fa-shield-alt w-icon"></i> Privacy
+              <i class="fas fa-shield-alt w-icon"></i>
+              Privacy
             </button>
             <button class="set-tab-btn" data-tab="data" role="tab" onclick="switchSettingsTab('data', this)">
-              <i class="fas fa-chart-bar w-icon"></i> Stats
+              <i class="fas fa-chart-bar w-icon"></i>
+              Stats
             </button>
-            <button class="set-tab-btn" data-tab="achievements" role="tab" onclick="switchSettingsTab('achievements', this)">
-              <i class="fas fa-trophy w-icon"></i> Achievements
+            <button
+              class="set-tab-btn"
+              data-tab="achievements"
+              role="tab"
+              onclick="switchSettingsTab('achievements', this)"
+            >
+              <i class="fas fa-trophy w-icon"></i>
+              Achievements
             </button>
             <button class="set-tab-btn" data-tab="discover" role="tab" onclick="switchSettingsTab('discover', this)">
-              <i class="fas fa-compass w-icon"></i> Discovery
+              <i class="fas fa-compass w-icon"></i>
+              Discovery
             </button>
             <button class="set-tab-btn" data-tab="about" role="tab" onclick="switchSettingsTab('about', this)">
-              <i class="fas fa-info-circle w-icon"></i> About
+              <i class="fas fa-info-circle w-icon"></i>
+              About
             </button>
           </div>
 
           <div class="settings-body flex-grow p-5 overflow-y-auto hide-scrollbar relative">
-            
             <div id="set-tab-appearance" class="set-tab fade-in active">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Theme</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Theme
+              </p>
               <div class="theme-grid d-grid grid-cols-auto-fit gap-sm mb-5">
-                <button class="theme-btn active" data-theme="netflix" onclick="applyTheme('netflix', this)">🔴 Netflix</button>
-                <button class="theme-btn" data-theme="midnight" onclick="applyTheme('midnight', this)">🌙 Midnight</button>
+                <button class="theme-btn active" data-theme="netflix" onclick="applyTheme('netflix', this)">
+                  🔴 Netflix
+                </button>
+                <button class="theme-btn" data-theme="midnight" onclick="applyTheme('midnight', this)">
+                  🌙 Midnight
+                </button>
                 <button class="theme-btn" data-theme="warm" onclick="applyTheme('warm', this)">🟠 Warm</button>
                 <button class="theme-btn" data-theme="teal" onclick="applyTheme('teal', this)">🔵 Teal</button>
                 <button class="theme-btn" data-theme="hulu" onclick="applyTheme('hulu', this)">🟢 Hulu</button>
@@ -392,16 +639,26 @@
                 <button class="theme-btn" data-theme="prime" onclick="applyTheme('prime', this)">🔷 Prime</button>
                 <button class="theme-btn" data-theme="rose" onclick="applyTheme('rose', this)">🌸 Rose</button>
                 <button class="theme-btn" data-theme="cyber" onclick="applyTheme('cyber', this)">🤖 Cyber</button>
-                <button class="theme-btn" data-theme="godmode" onclick="applyTheme('godmode', this)">⚡ God Mode</button>
+                <button class="theme-btn" data-theme="godmode" onclick="applyTheme('godmode', this)">
+                  ⚡ God Mode
+                </button>
               </div>
 
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Display</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Display
+              </p>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Ambient Glow</p>
                   <p class="set-row-desc">Adds a color glow behind the video player</p>
                 </div>
-                <div class="tog" id="tog-ambientGlow" onclick="toggleSetting('ambientGlow')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-ambientGlow"
+                  onclick="toggleSetting('ambientGlow')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
               <div class="set-row">
@@ -409,7 +666,13 @@
                   <p class="set-row-label">Reduced Motion</p>
                   <p class="set-row-desc">Minimizes animations and transitions</p>
                 </div>
-                <div class="tog" id="tog-reducedMotion" onclick="toggleSetting('reducedMotion')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-reducedMotion"
+                  onclick="toggleSetting('reducedMotion')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
               <div class="set-row">
@@ -417,7 +680,13 @@
                   <p class="set-row-label">Ambient Backdrop Mode</p>
                   <p class="set-row-desc">Subtle movie backdrop behind the entire UI</p>
                 </div>
-                <div class="tog" id="tog-ambientMode" onclick="toggleSetting('ambientMode')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-ambientMode"
+                  onclick="toggleSetting('ambientMode')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
               <div class="set-row">
@@ -433,8 +702,12 @@
                   <p class="set-row-label">Sleep Timer</p>
                   <p class="set-row-desc">Auto-pause player after a set time</p>
                 </div>
-                <button class="btn set-btn set-btn-secondary text-xs px-3 py-1.5 auto-width" onclick="SleepTimer.showMenu()">
-                  <i class="fas fa-moon mr-1"></i> Set Timer
+                <button
+                  class="btn set-btn set-btn-secondary text-xs px-3 py-1.5 auto-width"
+                  onclick="SleepTimer.showMenu()"
+                >
+                  <i class="fas fa-moon mr-1"></i>
+                  Set Timer
                 </button>
               </div>
 
@@ -443,7 +716,10 @@
                   <p class="set-row-label">Content Language</p>
                   <p class="set-row-desc">Language for movie/TV titles and descriptions</p>
                 </div>
-                <select class="settings-select bg-dark text-light border-light rounded px-3 py-2 text-sm max-w-sm" onchange="setLanguage(this.value)">
+                <select
+                  class="settings-select bg-dark text-light border-light rounded px-3 py-2 text-sm max-w-sm"
+                  onchange="setLanguage(this.value)"
+                >
                   <option value="en-US">English</option>
                   <option value="es-ES">Español</option>
                   <option value="fr-FR">Français</option>
@@ -462,7 +738,13 @@
                   <p class="set-row-label">Auto Theme</p>
                   <p class="set-row-desc">Automatically switch between themes by time of day</p>
                 </div>
-                <div class="tog" id="tog-autoTheme" onclick="toggleSetting('autoTheme')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-autoTheme"
+                  onclick="toggleSetting('autoTheme')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
               <div class="set-row">
@@ -478,94 +760,184 @@
                   <p class="set-row-label">Haptic Feedback Intensity</p>
                   <p class="set-row-desc">Controls vibration strength on mobile</p>
                 </div>
-                <input type="range" id="set-haptic" class="w-100 range-slider accent-primary" min="0" max="100" step="10" value="50" oninput="testHaptic()" />
+                <input
+                  type="range"
+                  id="set-haptic"
+                  class="w-100 range-slider accent-primary"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value="50"
+                  oninput="testHaptic()"
+                />
               </div>
             </div>
 
             <div id="set-tab-player" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Playback Controls</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Playback Controls
+              </p>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Cinema Dim Mode</p>
                   <p class="set-row-desc">Dims the UI when entering cinema mode</p>
                 </div>
-                <div class="tog" id="tog-cinemaDim" onclick="toggleSetting('cinemaDim')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-cinemaDim"
+                  onclick="toggleSetting('cinemaDim')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Auto-Play Next Episode</p>
                   <p class="set-row-desc">Automatically plays the next episode when current ends</p>
                 </div>
-                <div class="tog" id="tog-autoPlayNext" onclick="toggleSetting('autoPlayNext')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-autoPlayNext"
+                  onclick="toggleSetting('autoPlayNext')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Bandwidth Saver</p>
                   <p class="set-row-desc">Uses the lowest-bandwidth connection</p>
                 </div>
-                <div class="tog" id="tog-bandwidthSaver" onclick="toggleSetting('bandwidthSaver')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-bandwidthSaver"
+                  onclick="toggleSetting('bandwidthSaver')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Show Cast Section</p>
                   <p class="set-row-desc">Displays cast cards in the detail panel</p>
                 </div>
-                <div class="tog" id="tog-showCastSection" onclick="toggleSetting('showCastSection')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-showCastSection"
+                  onclick="toggleSetting('showCastSection')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
-              <p class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Default Embedded Server Node</p>
-              <select id="set-server" class="settings-select bg-dark text-light border-light rounded px-3 py-2 text-sm w-100 max-w-md float-left"></select>
+              <p
+                class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3"
+              >
+                Default Embedded Server Node
+              </p>
+              <select
+                id="set-server"
+                class="settings-select bg-dark text-light border-light rounded px-3 py-2 text-sm w-100 max-w-md float-left"
+              ></select>
               <div class="clear-both"></div>
 
-              <p class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">TMDB Embedded Token Key</p>
-              <input type="text" id="set-tmdb" class="set-input bg-dark border-light rounded text-white p-3 w-100 max-w-lg focus-ring font-code text-sm" placeholder="Paste your custom personal TMDB API key here…" autocomplete="off" spellcheck="false" />
+              <p
+                class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3"
+              >
+                TMDB Embedded Token Key
+              </p>
+              <input
+                type="text"
+                id="set-tmdb"
+                class="set-input bg-dark border-light rounded text-white p-3 w-100 max-w-lg focus-ring font-code text-sm"
+                placeholder="Paste your custom personal TMDB API key here…"
+                autocomplete="off"
+                spellcheck="false"
+              />
               <div id="tmdbKeyStatus" class="key-status mt-2 text-sm" style="display: none"></div>
 
               <div class="mt-3 d-flex gap-sm">
                 <button class="btn set-btn set-btn-secondary text-xs px-3 py-2" onclick="validateTMDBKey()">
-                  <i class="fas fa-check-circle mr-1"></i> Verify Key
+                  <i class="fas fa-check-circle mr-1"></i>
+                  Verify Key
                 </button>
-                <button class="btn set-btn set-btn-secondary text-xs px-3 py-2" onclick="document.getElementById('set-tmdb').value = ''; document.getElementById('tmdbKeyStatus').style.display = 'none';">
-                  <i class="fas fa-times mr-1"></i> Clear
+                <button
+                  class="btn set-btn set-btn-secondary text-xs px-3 py-2"
+                  onclick="
+                    document.getElementById('set-tmdb').value = '';
+                    document.getElementById('tmdbKeyStatus').style.display = 'none';
+                  "
+                >
+                  <i class="fas fa-times mr-1"></i>
+                  Clear
                 </button>
               </div>
             </div>
 
             <div id="set-tab-privacy" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Privacy Config</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Privacy Config
+              </p>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Privacy Mode</p>
                   <p class="set-row-desc">Disables watch history and stats tracking completely</p>
                 </div>
-                <div class="tog" id="tog-privacyMode" onclick="toggleSetting('privacyMode')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-privacyMode"
+                  onclick="toggleSetting('privacyMode')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
               <div class="set-row">
                 <div class="set-row-info">
                   <p class="set-row-label">Notifications</p>
                   <p class="set-row-desc">Show welcome and activity notifications</p>
                 </div>
-                <div class="tog" id="tog-notificationsEnabled" onclick="toggleSetting('notificationsEnabled')" role="switch" tabindex="0"></div>
+                <div
+                  class="tog"
+                  id="tog-notificationsEnabled"
+                  onclick="toggleSetting('notificationsEnabled')"
+                  role="switch"
+                  tabindex="0"
+                ></div>
               </div>
 
-              <p class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Backup Protocol</p>
+              <p
+                class="set-section-title mt-5 font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3"
+              >
+                Backup Protocol
+              </p>
               <div class="d-flex gap-sm flex-wrap mt-2">
                 <button class="btn set-btn set-btn-secondary px-4 py-2 text-sm shadow-sm" onclick="exportData()">
-                  <i class="fas fa-download mr-1"></i> Export Backup
+                  <i class="fas fa-download mr-1"></i>
+                  Export Backup
                 </button>
                 <label class="btn set-btn set-btn-secondary px-4 py-2 text-sm shadow-sm cursor-pointer m-0">
-                  <i class="fas fa-upload mr-1"></i> Import Backup
+                  <i class="fas fa-upload mr-1"></i>
+                  Import Backup
                   <input type="file" accept=".json" class="d-none" onchange="importData(this.files[0])" />
                 </label>
-                <button class="btn set-btn set-btn-danger px-4 py-2 text-sm bg-danger shadow-sm text-white" onclick="clearAllData()">
-                  <i class="fas fa-trash mr-1"></i> Clear All Data
+                <button
+                  class="btn set-btn set-btn-danger px-4 py-2 text-sm bg-danger shadow-sm text-white"
+                  onclick="clearAllData()"
+                >
+                  <i class="fas fa-trash mr-1"></i>
+                  Clear All Data
                 </button>
               </div>
             </div>
 
             <div id="set-tab-data" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Viewing Statistics</p>
-              <div id="statsSummaryText" class="text-white text-sm bg-surface-elevation rounded p-4 mb-4 border-light"></div>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Viewing Statistics
+              </p>
+              <div
+                id="statsSummaryText"
+                class="text-white text-sm bg-surface-elevation rounded p-4 mb-4 border-light"
+              ></div>
 
               <p class="chart-label mt-4 text-sm font-medium text-light">Weekly Activity</p>
               <div class="chart-wrap bg-dark rounded p-3 my-2 border-light relative-container h-64">
@@ -579,40 +951,71 @@
             </div>
 
             <div id="set-tab-achievements" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Achievements</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Achievements
+              </p>
               <div id="achievementsGrid" class="d-grid grid-cols-auto-fit gap-md"></div>
             </div>
 
             <div id="set-tab-discover" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Mood & Vibes</p>
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Mood &amp; Vibes
+              </p>
               <div id="moodSelectorContainer"></div>
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mt-5 mb-3">Time Capsule</p>
+              <p
+                class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mt-5 mb-3"
+              >
+                Time Capsule
+              </p>
               <div id="decadeGridContainer"></div>
             </div>
 
             <div id="set-tab-about" class="set-tab fade-in">
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">Engine Info</p>
-              
+              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mb-3">
+                Engine Info
+              </p>
+
               <div class="about-card bg-surface-elevation border-light rounded-xl p-5 mb-4 shadow-md">
-                <div class="about-brand font-display text-2xl font-black mb-2 omega-gradient-text d-inline-block">BingeBox Ω</div>
+                <div class="about-brand font-display text-2xl font-black mb-2 omega-gradient-text d-inline-block">
+                  BingeBox Ω
+                </div>
                 <div class="text-sm text-muted line-height-relaxed mt-2 text-justify">
-                  Ultimate Cinematic Streaming Platform v4.0<br />
-                  Powered by TMDB API · OmegaShield Neural-Grade Ad Blocker<br />
-                  <strong class="text-light">14 embedded servers</strong> · Watch Party WebSocket engine<br />
-                  19 achievements · Voice search · 10 themes · Konami code ✨<br /><br />
-                  <strong class="text-light">New in 2026:</strong> Download Center, Pop-out Player, Wide 21:9 Mode, FPS Counter, Deep-linking, and Matrix mode.
+                  Ultimate Cinematic Streaming Platform v4.0
+                  <br />
+                  Powered by TMDB API · OmegaShield Neural-Grade Ad Blocker
+                  <br />
+                  <strong class="text-light">14 embedded servers</strong>
+                  · Watch Party WebSocket engine
+                  <br />
+                  19 achievements · Voice search · 10 themes · Konami code ✨
+                  <br />
+                  <br />
+                  <strong class="text-light">New in 2026:</strong>
+                  Download Center, Pop-out Player, Wide 21:9 Mode, FPS Counter, Deep-linking, and Matrix mode.
                 </div>
               </div>
 
-              <p class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mt-5 mb-3">Connection Status</p>
-              <div id="aboutServerStatus" class="status-card bg-surface-elevation border-light rounded-xl p-4 mb-4 text-sm shadow-md line-height-loose">
+              <p
+                class="set-section-title font-code text-uppercase text-xs text-muted font-bold tracking-wider mt-5 mb-3"
+              >
+                Connection Status
+              </p>
+              <div
+                id="aboutServerStatus"
+                class="status-card bg-surface-elevation border-light rounded-xl p-4 mb-4 text-sm shadow-md line-height-loose"
+              >
                 <div class="d-flex justify-between align-items-center flex-wrap gap-xs mb-2">
                   <span class="text-muted">Mode</span>
-                  <span id="aboutModeLabel" class="font-bold text-light bg-dark px-3 py-1 rounded shadow-inner text-xs">Detecting…</span>
+                  <span id="aboutModeLabel" class="font-bold text-light bg-dark px-3 py-1 rounded shadow-inner text-xs">
+                    Detecting…
+                  </span>
                 </div>
                 <div class="d-flex justify-between align-items-center flex-wrap gap-xs mb-2">
                   <span class="text-muted">TMDB Endpoint</span>
-                  <span id="aboutTmdbEndpoint" class="font-code text-accent text-xs break-all text-right max-w-60"></span>
+                  <span
+                    id="aboutTmdbEndpoint"
+                    class="font-code text-accent text-xs break-all text-right max-w-60"
+                  ></span>
                 </div>
                 <div class="d-flex justify-between align-items-center flex-wrap gap-xs mb-2">
                   <span class="text-muted">API Key</span>
@@ -620,7 +1023,10 @@
                 </div>
                 <div class="d-flex justify-between align-items-center flex-wrap gap-xs">
                   <span class="text-muted">OmegaShield Firewall</span>
-                  <span class="text-success font-bold text-pulse"><i class="fas fa-shield-alt mr-1"></i> Active</span>
+                  <span class="text-success font-bold text-pulse">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Active
+                  </span>
                 </div>
               </div>
 
@@ -629,7 +1035,12 @@
                   <p class="set-row-label">⌨️ Keyboard Shortcuts</p>
                   <p class="set-row-desc">View all advanced mapping bindings</p>
                 </div>
-                <button class="btn set-btn set-btn-secondary px-4 py-2 text-sm shadow-sm" onclick="showKeyboardShortcuts()">View</button>
+                <button
+                  class="btn set-btn set-btn-secondary px-4 py-2 text-sm shadow-sm"
+                  onclick="showKeyboardShortcuts()"
+                >
+                  View
+                </button>
               </div>
 
               <div class="mt-4 pt-4 border-top border-light border-opacity-10 text-xs text-muted line-height-loose">
@@ -639,10 +1050,18 @@
           </div>
         </div>
 
-        <div class="settings-actions p-4 border-top bg-surface d-flex justify-end gap-sm col-span-full border-radius-bottom">
-          <button class="btn set-btn set-btn-secondary px-5 py-2 shadow-sm order-0" onclick="closeSettings()">Cancel</button>
-          <button class="btn set-btn set-btn-primary px-5 py-2 shadow-sm bg-accent text-white order-1" onclick="saveSettings()">
-            <i class="fas fa-check mr-2"></i> Save Configuration
+        <div
+          class="settings-actions p-4 border-top bg-surface d-flex justify-end gap-sm col-span-full border-radius-bottom"
+        >
+          <button class="btn set-btn set-btn-secondary px-5 py-2 shadow-sm order-0" onclick="closeSettings()">
+            Cancel
+          </button>
+          <button
+            class="btn set-btn set-btn-primary px-5 py-2 shadow-sm bg-accent text-white order-1"
+            onclick="saveSettings()"
+          >
+            <i class="fas fa-check mr-2"></i>
+            Save Configuration
           </button>
         </div>
       </div>
@@ -652,14 +1071,32 @@
      WATCH PARTY MODAL
     ═══════════════════════════════════════════════════ -->
     <div id="partyModal" style="display: none" role="dialog">
-      <div class="party-box modal-content text-center party-modal-card bg-surface border-light p-5 rounded-xl shadow-2xl max-w-sm mx-auto scale-in">
+      <div
+        class="party-box modal-content text-center party-modal-card bg-surface border-light p-5 rounded-xl shadow-2xl max-w-sm mx-auto scale-in"
+      >
         <div class="party-icon">🎉</div>
         <h3 class="font-display text-2xl text-accent mb-2">Join a Watch Party</h3>
         <p class="text-sm text-muted mb-4">Enter an 8-digit room code to watch with friends in sync.</p>
-        <input type="text" id="partyJoinCode" class="set-input bg-dark border-light text-center text-xl font-code tracking-widest text-light p-3 rounded w-100 mb-4 focus-ring" placeholder="ROOM CODE" maxlength="8" />
+        <input
+          type="text"
+          id="partyJoinCode"
+          class="set-input bg-dark border-light text-center text-xl font-code tracking-widest text-light p-3 rounded w-100 mb-4 focus-ring"
+          placeholder="ROOM CODE"
+          maxlength="8"
+        />
         <div class="d-flex justify-center gap-md">
-          <button class="party-join-btn btn set-btn set-btn-primary bg-accent px-5 py-2 w-100 shadow-md text-white font-bold" onclick="PartyEngine.joinRoom()">Join</button>
-          <button class="party-cancel btn set-btn set-btn-secondary px-5 py-2 w-100 shadow-sm" onclick="document.getElementById('partyModal').style.display='none'">Cancel</button>
+          <button
+            class="party-join-btn btn set-btn set-btn-primary bg-accent px-5 py-2 w-100 shadow-md text-white font-bold"
+            onclick="PartyEngine.joinRoom()"
+          >
+            Join
+          </button>
+          <button
+            class="party-cancel btn set-btn set-btn-secondary px-5 py-2 w-100 shadow-sm"
+            onclick="document.getElementById('partyModal').style.display = 'none'"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -667,22 +1104,56 @@
     <!-- ═══════════════════════════════════════════════════
      WATCH PARTY SIDEBAR
     ═══════════════════════════════════════════════════ -->
-    <aside id="partySidebar" class="party-sidebar shadow-2xl display-flex flex-col h-100vh absolute-left slide-in-left bg-sidebar border-right" role="complementary">
-      <div class="party-sidebar-top panel-header border-bottom p-4 d-flex justify-between align-items-center bg-surface-elevation">
+    <aside
+      id="partySidebar"
+      class="party-sidebar shadow-2xl display-flex flex-col h-100vh absolute-left slide-in-left bg-sidebar border-right"
+      role="complementary"
+    >
+      <div
+        class="party-sidebar-top panel-header border-bottom p-4 d-flex justify-between align-items-center bg-surface-elevation"
+      >
         <h2 class="party-sidebar-title font-display text-md text-white m-0">
-          <i class="fas fa-users mr-2 text-accent"></i> Watch Party
+          <i class="fas fa-users mr-2 text-accent"></i>
+          Watch Party
         </h2>
         <span id="partyCodeDisplay"></span>
-        <button class="party-leave-btn btn btn-sm btn-outline-danger text-xs px-2 py-1" onclick="PartyEngine.leaveRoom()">Leave</button>
+        <button
+          class="party-leave-btn btn btn-sm btn-outline-danger text-xs px-2 py-1"
+          onclick="PartyEngine.leaveRoom()"
+        >
+          Leave
+        </button>
       </div>
 
-      <div id="partyMessages" class="party-messages-wrap flex-grow overflow-y-auto p-3 scrollbar-thin scroll-smooth flex-col gap-sm"></div>
-      <div id="partyReactionBar" class="party-reaction-bar d-flex justify-around p-2 border-top bg-surface-elevation border-light"></div>
-      <div id="partyTypingIndicator" class="typing-indicator px-3 pt-2 text-xs text-muted font-italic min-h-20" style="display: none"></div>
+      <div
+        id="partyMessages"
+        class="party-messages-wrap flex-grow overflow-y-auto p-3 scrollbar-thin scroll-smooth flex-col gap-sm"
+      ></div>
+      <div
+        id="partyReactionBar"
+        class="party-reaction-bar d-flex justify-around p-2 border-top bg-surface-elevation border-light"
+      ></div>
+      <div
+        id="partyTypingIndicator"
+        class="typing-indicator px-3 pt-2 text-xs text-muted font-italic min-h-20"
+        style="display: none"
+      ></div>
 
       <div class="party-input-area p-3 bg-surface-elevation d-flex gap-xs border-top">
-        <input id="partyInput" class="flex-grow set-input bg-dark border-light text-sm p-2 rounded focus-ring text-light" type="text" placeholder="Say something…" maxlength="200" onkeydown="if (event.key === 'Enter') PartyEngine.sendMessage();" oninput="PartyEngine.sendTyping()" />
-        <button class="party-send-btn btn btn-icon bg-accent text-white rounded shadow-sm hover-brightness" onclick="PartyEngine.sendMessage()" aria-label="Send message">
+        <input
+          id="partyInput"
+          class="flex-grow set-input bg-dark border-light text-sm p-2 rounded focus-ring text-light"
+          type="text"
+          placeholder="Say something…"
+          maxlength="200"
+          onkeydown="if (event.key === 'Enter') PartyEngine.sendMessage();"
+          oninput="PartyEngine.sendTyping()"
+        />
+        <button
+          class="party-send-btn btn btn-icon bg-accent text-white rounded shadow-sm hover-brightness"
+          onclick="PartyEngine.sendMessage()"
+          aria-label="Send message"
+        >
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
@@ -692,17 +1163,20 @@
      DOWNLOAD MODAL
     ═══════════════════════════════════════════════════ -->
     <div id="downloadOverlay" role="dialog">
-      <div class="dl-modal modal-content download-modal-card bg-surface border-light p-5 rounded-xl shadow-2xl max-w-md mx-auto scale-in relative d-flex flex-col">
+      <div
+        class="dl-modal modal-content download-modal-card bg-surface border-light p-5 rounded-xl shadow-2xl max-w-md mx-auto scale-in relative d-flex flex-col"
+      >
         <div class="dl-header border-bottom border-light pb-3 mb-4 d-flex justify-between align-items-center">
           <div class="dl-header-left font-display text-xl text-white m-0">
             <i class="fas fa-download text-accent mr-2"></i>
-            Download Center <span id="dlTitle"></span>
+            Download Center
+            <span id="dlTitle"></span>
           </div>
           <button class="dl-close btn-icon text-muted text-lg hover-text-white" onclick="closeDownloadModal()">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <iframe id="dlIframe" allowfullscreen></iframe>
+        <iframe id="dlIframe" allowfullscreen=""></iframe>
       </div>
     </div>
 
@@ -712,36 +1186,59 @@
     <!-- ═══════════════════════════════════════════════════
      CONTEXT MENU
     ═══════════════════════════════════════════════════ -->
-    <div id="context-menu" class="context-menu dropdown-menu shadow-xl border-light scale-in-fast absolute z-top" role="menu">
+    <div
+      id="context-menu"
+      class="context-menu dropdown-menu shadow-xl border-light scale-in-fast absolute z-top"
+      role="menu"
+    >
       <div class="cm-item drop-item font-medium" id="cm-play">
-        <i class="fas fa-play w-icon text-accent"></i> Play Now
+        <i class="fas fa-play w-icon text-accent"></i>
+        Play Now
       </div>
       <div class="cm-item drop-item" id="cm-info">
-        <i class="fas fa-info-circle w-icon"></i> More Info
+        <i class="fas fa-info-circle w-icon"></i>
+        More Info
       </div>
       <div class="cm-divider drop-divider opacity-50"></div>
       <div class="cm-item drop-item" id="cm-watchlist">
-        <i class="fas fa-plus w-icon"></i> Toggle My List
+        <i class="fas fa-plus w-icon"></i>
+        Toggle My List
       </div>
       <div class="cm-item drop-item" id="cm-share">
-        <i class="fas fa-share-alt w-icon"></i> Share Link
+        <i class="fas fa-share-alt w-icon"></i>
+        Share Link
       </div>
     </div>
 
     <!-- SCROLL TO TOP BADGE -->
-    <button id="scrollTopBtn" class="scroll-top-btn floating-action-btn circle bg-accent text-white shadow-lg text-lg fade-in" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Scroll to top">
+    <button
+      id="scrollTopBtn"
+      class="scroll-top-btn floating-action-btn circle bg-accent text-white shadow-lg text-lg fade-in"
+      onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+      aria-label="Scroll to top"
+    >
       <i class="fas fa-chevron-up"></i>
     </button>
 
     <!-- FLOATERS: TIMERS / FPS COUNTER -->
-    <div id="sleepTimerBadge" class="system-badge badge-top-right text-xs bg-dark shadow-sm border-light rounded-pill px-3 py-1 cursor-pointer font-bold floating-badge" onclick="SleepTimer.showMenu()" aria-label="Sleep Timer">
-      <i class="fas fa-moon text-accent mr-1"></i> <span id="sleepTimerText">00:00</span>
+    <div
+      id="sleepTimerBadge"
+      class="system-badge badge-top-right text-xs bg-dark shadow-sm border-light rounded-pill px-3 py-1 cursor-pointer font-bold floating-badge"
+      onclick="SleepTimer.showMenu()"
+      aria-label="Sleep Timer"
+    >
+      <i class="fas fa-moon text-accent mr-1"></i>
+      <span id="sleepTimerText">00:00</span>
     </div>
 
-    <div id="fpsBadge" class="system-badge badge-top-left text-code text-xs bg-black bg-opacity-70 text-success rounded px-2 py-1 user-select-none border font-code floating-badge" aria-hidden="true">
+    <div
+      id="fpsBadge"
+      class="system-badge badge-top-left text-code text-xs bg-black bg-opacity-70 text-success rounded px-2 py-1 user-select-none border font-code floating-badge"
+      aria-hidden="true"
+    >
       -- FPS
     </div>
-    
+
     <!-- RANDOM MOVIE BUTTON -->
     <div id="randomBtn" onclick="randomMovie()"><i class="fas fa-dice"></i></div>
 
@@ -752,29 +1249,46 @@
       <div class="footer-inner container-fluid max-w-7xl mx-auto px-4">
         <div>
           <div class="footer-logo font-display text-2xl font-black mb-3 alpha-gradient d-inline-block m-0">
-            BingeBox <span class="footer-omega">Ω</span>
+            BingeBox
+            <span class="footer-omega">Ω</span>
           </div>
           <p class="footer-tagline text-sm text-muted line-height-relaxed m-0 text-justify">
-            The ultimate cinematic streaming engine. Powered by TMDB, protected by OmegaShield, and built for an extraordinary viewing experience.
+            The ultimate cinematic streaming engine. Powered by TMDB, protected by OmegaShield, and built for an
+            extraordinary viewing experience.
           </p>
         </div>
         <div class="footer-links d-flex gap-lg flex-wrap justify-center font-medium list-none text-sm">
           <button class="text-muted hover-text-white transition cursor-pointer" onclick="goHome()">🏠 Home</button>
-          <button class="text-muted hover-text-white transition cursor-pointer" onclick="showCategory('movie', 'popular')">🎬 Movies</button>
-          <button class="text-muted hover-text-white transition cursor-pointer" onclick="showCategory('tv', 'popular')">📺 TV Shows</button>
-          <button class="text-muted hover-text-white transition cursor-pointer" onclick="toggleWishlistPanel()">❤️ My List</button>
-          <button class="text-muted hover-text-white transition cursor-pointer" onclick="openSettings()">⚙️ Settings</button>
-          <button class="text-muted hover-text-white transition cursor-pointer" onclick="showKeyboardShortcuts()">⌨️ Shortcuts</button>
+          <button
+            class="text-muted hover-text-white transition cursor-pointer"
+            onclick="showCategory('movie', 'popular')"
+          >
+            🎬 Movies
+          </button>
+          <button class="text-muted hover-text-white transition cursor-pointer" onclick="showCategory('tv', 'popular')">
+            📺 TV Shows
+          </button>
+          <button class="text-muted hover-text-white transition cursor-pointer" onclick="toggleWishlistPanel()">
+            ❤️ My List
+          </button>
+          <button class="text-muted hover-text-white transition cursor-pointer" onclick="openSettings()">
+            ⚙️ Settings
+          </button>
+          <button class="text-muted hover-text-white transition cursor-pointer" onclick="showKeyboardShortcuts()">
+            ⌨️ Shortcuts
+          </button>
         </div>
       </div>
-      <div class="footer-bottom d-flex justify-between align-items-center flex-wrap gap-sm text-xs text-muted opacity-80 mt-3 font-code px-2">
+      <div
+        class="footer-bottom d-flex justify-between align-items-center flex-wrap gap-sm text-xs text-muted opacity-80 mt-3 font-code px-2"
+      >
         <span class="m-0">© 2026 BingeBox Omega — Not affiliated with TMDB.</span>
         <span class="m-0 text-right">v4.0 · 14 Servers · Edge Ready</span>
       </div>
     </footer>
 
     <!-- EXTERNAL JS LOGIC SCRIPT BINDING -->
-    <script src="index.js" defer></script>
+    <script src="index.js" defer=""></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (typeof window.goHome !== "function") {
