@@ -1,11 +1,37 @@
 'use strict';
+
+/**
+ * A protected admin endpoint to dynamically set the TMDB_API_KEY for the current runtime.
+ * This is a temporary measure as environment variables reset on serverless cold starts.
+ *
+ * SECURITY: This endpoint is protected by a secret key passed in the 'x-admin-secret' header.
+ */
 module.exports = (req, res) => {
+  // Set global CORS policy
   res.setHeader('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).end();
-  // In production, gate this with a secret header check
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  // --- SECURITY CHECK ---
+  // Ensure the request includes the secret admin key to prevent unauthorized access.
+  const adminSecret = process.env.ADMIN_SECRET_KEY;
+  if (!adminSecret || req.headers['x-admin-secret'] !== adminSecret) {
+    return res.status(403).json({ error: 'forbidden', message: 'Missing or invalid admin secret.' });
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'method_not_allowed' });
+  }
+
   const { key } = req.body || {};
-  if (!key || key.length < 10) return res.status(400).json({ error: 'Invalid key' });
-  process.env.TMDB_API_KEY = key; // runtime only — resets on cold start
-  res.json({ ok: true });
+  if (!key || typeof key !== 'string' || key.length < 32) {
+    return res.status(400).json({ error: 'bad_request', message: 'A valid TMDB API key string is required.' });
+  }
+
+  // This sets the environment variable ONLY for the currently running serverless function instance.
+  // It will be reset the next time the function has a cold start.
+  process.env.TMDB_API_KEY = key;
+
+  res.status(200).json({ status: 'ok', message: 'TMDB API key updated for this runtime instance.' });
 };
