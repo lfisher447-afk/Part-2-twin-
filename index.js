@@ -1,4 +1,6 @@
-  (function () {
+"use strict";
+
+(function () {
         var _skipTimer = null;
         var _skipInterval = null;
 
