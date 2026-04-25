@@ -1,0 +1,5780 @@
+  (function () {
+        var _skipTimer = null;
+        var _skipInterval = null;
+
+        function hideLoader() {
+          clearTimeout(_skipTimer);
+          clearInterval(_skipInterval);
+          var overlay = document.getElementById("loaderOverlay");
+          if (overlay) overlay.classList.add("hidden");
+        }
+
+        var time = 10;
+        var btn = document.getElementById("loaderSkipBtn");
+
+        _skipInterval = setInterval(function () {
+          time--;
+          if (btn) btn.textContent = "✕ Skip (" + time + "s)";
+          if (time <= 0) hideLoader();
+        }, 1000);
+
+        _skipTimer = setTimeout(hideLoader, 10000);
+        if (btn) btn.onclick = hideLoader;
+
+        window._hideLoader = hideLoader;
+      })();
+    </script>
+
+    <!-- Scroll / render bridge -->
+    <script>
+      /* Scroll-to-top visibility */
+      window.addEventListener(
+        "scroll",
+        () => {
+          const btn = document.getElementById("scrollTopBtn");
+          if (btn) btn.classList.toggle("visible", window.scrollY > 400);
+          /* Progressive navbar opacity based on scroll */
+          const nav = document.getElementById("navbar");
+          if (nav && !nav.classList.contains("solid")) {
+            const op = Math.min(1, window.scrollY / 200);
+            nav.style.setProperty("--nav-bg-opacity", op.toFixed(2));
+          }
+        },
+        { passive: true },
+      );
+
+      /* Hero render hook — called by Hero.render(item) */
+      window._heroRenderHook = function (item) {
+        if (!item) return;
+        const backdrop = document.getElementById("heroBackdrop");
+        const title = document.getElementById("heroTitle");
+        const desc = document.getElementById("heroDesc");
+        const rating = document.getElementById("heroRating");
+        const runtime = document.getElementById("heroRuntime");
+        const genres = document.getElementById("heroGenres");
+        const badgeType = document.getElementById("heroBadgeType");
+        const badgeYear = document.getElementById("heroBadgeYear");
+
+        if (backdrop && item.backdrop) {
+          backdrop.style.backgroundImage = `url('${item.backdrop}')`;
+        }
+        if (title) title.textContent = item.title || "";
+        if (desc) desc.textContent = item.desc || "";
+        if (badgeType) badgeType.textContent = (item.type || "movie").toUpperCase();
+        if (badgeYear) badgeYear.textContent = item.year || "";
+        if (rating)
+          rating.innerHTML = `<i class="fas fa-star" style="color:#f59e0b;"></i> ${item.rating ? item.rating.toFixed(1) : "—"}`;
+
+        window._currentHeroItem = item;
+      };
+
+      window._heroPlayBtn = null;
+      window._heroInfoBtn = null;
+      window._heroListBtn = null;
+    </script>
+
+    <!-- BingeBox 2026 v4.0 Main Engine -->
+    <script>
+      "use strict";
+
+      /* ═══════════════════════════════════════════════════════════════════════════
+   BINGEBOX OMEGA — ULTIMATE ENGINE v3.0
+   Full-stack streaming platform core — every system maxed out.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+      /* ── OMEGA SHIELD v3 — Neural-Grade Multi-Layer Ad & Threat Blocker ──────── */
+      const OmegaShield = (() => {
+        const BLOCKED_DOMAINS = [
+          "popads.net",
+          "adsterra.com",
+          "exoclick.com",
+          "propellerads.com",
+          "bet365.com",
+          "1xbet.com",
+          "adcash.com",
+          "onclickalgo.com",
+          "doubleclick.net",
+          "google-analytics.com",
+          "mgid.com",
+          "trafficjunky.net",
+          "juicyads.com",
+          "hilltopads.net",
+          "clickadu.com",
+          "popcash.net",
+          "adnxs.com",
+          "rubiconproject.com",
+          "pubmatic.com",
+          "openx.net",
+          "appnexus.com",
+          "outbrain.com",
+          "taboola.com",
+          "revcontent.com",
+          "adsafeprotected.com",
+          "moatads.com",
+          "amazon-adsystem.com",
+          "scorecardresearch.com",
+          "omtrdc.net",
+          "bluekai.com",
+          "krxd.net",
+          "xtendmedia.com",
+          "casalemedia.com",
+          "smartadserver.com",
+          "yieldmo.com",
+          "undertone.com",
+          "advertising.com",
+          "yieldoptimizer.com",
+          "servedby.flashtalking.com",
+          "ads.twitter.com",
+          "ads.linkedin.com",
+          "connect.facebook.net",
+          "platform.twitter.com",
+          "widgets.outbrain.com",
+          "cdn.taboola.com",
+          "engine.carbonads.com",
+          "srv.carbonads.com",
+          "adblade.com",
+          "traffichunt.com",
+          "trafmag.com",
+          "popin.cc",
+          "ozip.io",
+          "pushcrew.com",
+          "onesignal.com",
+          "web-push-notifications.com",
+          "trackjs.com",
+          "trackadblock.com",
+          "cdn.confiant-integrations.net",
+          "cdn.bootlicker.io",
+          "trustarc.com",
+        ];
+        const BLOCKED_RE =
+          /\b(popup|popunder|overlay|interstitial|takeover|adhesion|leaderboard|advert|advertisement|adsense|adservice|adsystem|gpt\.js|show_ads|banner_ads|rich-media|sponsor(?:ed)?[-_](?:content|post|link)|exit.?intent|push.?notif|cookie.?consent.?banner)\b/i;
+        const AD_SIG_RE =
+          /\b(popup|overlay|banner|sponsor|ad-container|ad-banner|ads-wrapper|ad-unit|advert|adsbox|ad-slot|gpt-ad|dfp-ad|affiliate|sponsored|tracking)\b/i;
+
+        /* Block by domain match */
+        function isDomainBlocked(url) {
+          try {
+            const h = new URL(String(url)).hostname.replace(/^www\./, "");
+            return BLOCKED_DOMAINS.some((d) => h === d || h.endsWith("." + d));
+          } catch (_) {
+            return BLOCKED_DOMAINS.some((d) => String(url).includes(d));
+          }
+        }
+
+        /* Detect ad/overlay nodes by signature, z-index, positioning */
+        function isAdNode(node) {
+          if (!node || node.nodeType !== 1) return false;
+          if (node.id?.includes("bingebox") || node.id?.includes("bb-")) return false;
+          const sig = ((node.id || "") + " " + (node.className || "")).toLowerCase();
+          const src = node.src || node.href || node.action || "";
+          if (isDomainBlocked(src)) return true;
+          if (AD_SIG_RE.test(sig)) return true;
+          const cs = window.getComputedStyle?.(node);
+          if (cs) {
+            const z = parseInt(cs.zIndex || 0);
+            const pos = cs.position;
+            const inert = node.tagName === "SCRIPT" || node.tagName === "STYLE";
+            if (!inert && z > 99999 && (pos === "fixed" || pos === "absolute")) return true;
+          }
+          return false;
+        }
+
+        /* Patch fetch */
+        function patchFetch() {
+          const _orig = window.fetch;
+          window.fetch = function (...args) {
+            if (isDomainBlocked(String(args[0] || ""))) {
+              console.debug("[OmegaShield] Blocked fetch:", args[0]);
+              return Promise.resolve(new Response(null, { status: 204 }));
+            }
+            return _orig.apply(this, args);
+          };
+        }
+
+        /* Patch XHR */
+        function patchXHR() {
+          const _open = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function (m, u, ...r) {
+            if (isDomainBlocked(String(u || ""))) {
+              console.debug("[OmegaShield] Blocked XHR:", u);
+              return _open.call(this, m, "about:blank", ...r);
+            }
+            return _open.call(this, m, u, ...r);
+          };
+        }
+
+        /* Patch window.open */
+        function patchWindowOpen() {
+          const _orig = window.open;
+          window.open = function (url, name, features) {
+            if (!url) return null;
+            if (isDomainBlocked(url) || BLOCKED_RE.test(url)) {
+              console.debug("[OmegaShield] Blocked window.open:", url);
+              return null;
+            }
+            if (name && name !== "_blank" && name !== "_self" && name !== "_parent") return null;
+            return _orig.call(window, url, name, features);
+          };
+        }
+
+        /* Patch document.write (common ad injection vector) */
+        function patchDocWrite() {
+          const _write = document.write.bind(document);
+          document.write = function (markup) {
+            if (typeof markup === "string" && BLOCKED_RE.test(markup)) {
+              console.debug("[OmegaShield] Blocked document.write");
+              return;
+            }
+            return _write(markup);
+          };
+        }
+
+        /* MutationObserver — remove ad nodes as they're inserted */
+        function startObserver() {
+          const obs = new MutationObserver((mutations) => {
+            for (const mut of mutations) {
+              for (const node of mut.addedNodes) {
+                if (isAdNode(node)) {
+                  try {
+                    node.style.display = "none";
+                    node.remove();
+                  } catch (_) {}
+                }
+              }
+            }
+          });
+          const attach = () => {
+            if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+          };
+          document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", attach) : attach();
+        }
+
+        /* Watch for dynamically inserted iframes pointing to ad networks */
+        function watchIframes() {
+          const iObs = new MutationObserver((muts) => {
+            for (const m of muts) {
+              for (const n of m.addedNodes) {
+                if (n.tagName === "IFRAME" && isDomainBlocked(n.src || n.dataset.src || "")) {
+                  n.remove();
+                }
+              }
+            }
+          });
+          const attach = () => {
+            if (document.documentElement) iObs.observe(document.documentElement, { childList: true, subtree: true });
+          };
+          document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", attach) : attach();
+        }
+
+        function init() {
+          patchFetch();
+          patchXHR();
+          patchWindowOpen();
+          patchDocWrite();
+          startObserver();
+          watchIframes();
+        }
+
+        return { init, isDomainBlocked };
+      })();
+      OmegaShield.init();
+
+      /* ── EVENT BUS — Pub/Sub for decoupled communication ─────────────────────── */
+      const EventBus = (() => {
+        const listeners = new Map();
+        return {
+          on(event, fn, { once = false } = {}) {
+            if (!listeners.has(event)) listeners.set(event, []);
+            listeners.get(event).push({ fn, once });
+            return () => this.off(event, fn);
+          },
+          once(event, fn) {
+            return this.on(event, fn, { once: true });
+          },
+          off(event, fn) {
+            if (!listeners.has(event)) return;
+            listeners.set(
+              event,
+              listeners.get(event).filter((l) => l.fn !== fn),
+            );
+          },
+          emit(event, data) {
+            const evtListeners = listeners.get(event) || [];
+            const wildcard = listeners.get("*") || [];
+            [...evtListeners, ...wildcard].forEach(({ fn, once }) => {
+              try {
+                fn(data, event);
+              } catch (e) {
+                console.error(`EventBus error on "${event}":`, e);
+              }
+            });
+            listeners.set(
+              event,
+              evtListeners.filter((l) => !l.once),
+            );
+          },
+        };
+      })();
+
+      /* ── SAFE STORAGE v2 — Versioned, fault-tolerant, compressed ──────────────── */
+      const SafeStorage = {
+        _v: "3.0",
+        get(k, fallback = null) {
+          try {
+            const raw = localStorage.getItem(k);
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            return parsed;
+          } catch {
+            return fallback;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, JSON.stringify(v));
+            return true;
+          } catch (e) {
+            if (e.name === "QuotaExceededError") {
+              console.warn("[SafeStorage] Quota exceeded, pruning old data…");
+              this._prune();
+              try {
+                localStorage.setItem(k, JSON.stringify(v));
+                return true;
+              } catch {
+                return false;
+              }
+            }
+            return false;
+          }
+        },
+        remove(k) {
+          try {
+            localStorage.removeItem(k);
+          } catch (_) {}
+        },
+        _prune() {
+          /* Remove oldest watch history entries to free space */
+          const hist = this.get("bb_history", []);
+          if (hist.length > 20) this.set("bb_history", hist.slice(0, 20));
+          const cache_keys = ["bb_tmdb_cache"];
+          cache_keys.forEach((k) => this.remove(k));
+        },
+        export() {
+          const d = {
+            version: this._v,
+            exportedAt: new Date().toISOString(),
+            lib: AppState.library,
+            set: AppState.settings,
+            stats: AppState.stats,
+            profiles: AppState.profiles,
+            wishlist: State.get("wishlist"),
+            history: State.get("watchHistory"),
+            achievements: AppState.achievements,
+          };
+          const blob = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
+          const a = Object.assign(document.createElement("a"), {
+            href: URL.createObjectURL(blob),
+            download: `BingeBox_Omega_Backup_${Date.now()}.json`,
+          });
+          a.click();
+          URL.revokeObjectURL(a.href);
+          showToast("Backup exported successfully!", "success");
+        },
+        import(file) {
+          return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = (e) => {
+              try {
+                const d = JSON.parse(e.target.result);
+                if (d.lib) this.set("bb_lib", d.lib);
+                if (d.set) this.set("bb_settings", d.set);
+                if (d.stats) this.set("bb_stats", d.stats);
+                if (d.wishlist) this.set("bb_wishlist", d.wishlist);
+                if (d.history) this.set("bb_history", d.history);
+                if (d.achievements) this.set("bb_achievements", d.achievements);
+                showToast("Backup restored! Reloading…", "success");
+                setTimeout(() => location.reload(), 1500);
+                resolve();
+              } catch (err) {
+                showToast("Invalid backup file.", "error");
+                reject(err);
+              }
+            };
+            r.onerror = reject;
+            r.readAsText(file);
+          });
+        },
+      };
+
+      /* ── CONFIG ─────────────────────────────────────────────────────────────────
+   Dual-mode: when server.js proxy is running requests go through /api/v1/tmdb
+   (no key needed — server handles auth with TMDB_API_KEY env var).
+   When running as a standalone HTML file the client falls back to direct
+   TMDB API calls using the bundled key below.
+   ─────────────────────────────────────────────────────────────────────────── */
+      const CONFIG = {
+        /* Proxy path (server.js ApiProxy module mounts at /api/v1) */
+        TMDB_BASE: "/api/v1/tmdb",
+        /* Direct TMDB base — used when no proxy is detected */
+        TMDB_DIRECT: "https://api.themoviedb.org/3",
+        /* Fallback key from server.js — matches TMDB_API_KEY env var default.
+      Overridden at runtime by Settings → TMDB API Key field.            */
+        TMDB_KEY: (() => {
+          try {
+            return localStorage.getItem("bb_tmdb_key") || "15d2ea6d0dc1d476efbca3eba2b9bbfb";
+          } catch (_) {
+            return "15d2ea6d0dc1d476efbca3eba2b9bbfb";
+          }
+        })(),
+        /* Proxy status: null=probing, true=server found, false=standalone mode */
+        _hasProxy: null,
+        /* Batch endpoint exposed by server.js ApiProxy (/api/v1/tmdb/batch)   */
+        TMDB_BATCH: "/api/v1/tmdb/batch",
+
+        IMG_BASE: "https://image.tmdb.org/t/p",
+        IMG_W500: "https://image.tmdb.org/t/p/w500",
+        IMG_W1280: "https://image.tmdb.org/t/p/w1280",
+        IMG_ORIG: "https://image.tmdb.org/t/p/original",
+
+        /* TTL values mirror server.js CacheManager.CFG */
+        CACHE_TTL: 5 * 60 * 1000, // 5 min  — hot data
+        CACHE_TTL_LONG: 60 * 60 * 1000, // 60 min — genre lists etc.
+        MAX_CONCURRENT: 6,
+        MAX_RETRIES: 3,
+        DL_EMBED: "https://dl.vidsrc.vip", // Download embed from main_js
+        VERSION: "4.0.2026",
+        BATCH_MAX: 20,
+        IMG_SIZES: ["w92", "w154", "w185", "w342", "w500", "w780", "original"],
+        DL_EMBED: "https://dl.vidsrc.vip",
+      };
+
+      /* ── PROXY DETECTION — non-blocking, one-shot ───────────────────────────────
+   Pings the server.js /health endpoint. If it responds the client uses the
+   /api/v1/tmdb proxy (no key needed). If not it drops to direct TMDB mode.
+   ─────────────────────────────────────────────────────────────────────────── */
+      /* _proxyReady — a Promise init() awaits before any TMDB call.
+   Resolves in ≤3s either way; never rejects. */
+      const _proxyReady = (async () => {
+        try {
+          const r = await fetch("/api/health", { method: "GET", signal: AbortSignal.timeout(3000) });
+          CONFIG._hasProxy = r.ok;
+        } catch (_) {
+          CONFIG._hasProxy = false;
+        }
+        /* Update badge once we know */
+        const badge = document.getElementById("bb-proxy-badge");
+        if (badge) {
+          badge.textContent = CONFIG._hasProxy ? "🟢 Vercel" : "🟡 Standalone";
+          badge.title = CONFIG._hasProxy
+            ? "Using Vercel serverless proxy — /api/v1/tmdb/*"
+            : "No proxy — direct TMDB API (open index.html standalone)";
+        }
+        console.info(`[BingeBox] Mode: ${CONFIG._hasProxy ? "Vercel proxy" : "standalone"}`);
+      })();
+
+      /* ── APP STATE ─────────────────────────────────────────────────────────────── */
+      const AppState = {
+        profiles: SafeStorage.get("bb_profiles", [
+          {
+            id: "p1",
+            name: "Admin",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=b6e3f4",
+            pin: null,
+            settings: {},
+          },
+          {
+            id: "p2",
+            name: "Guest",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Guest&backgroundColor=ffd5dc",
+            pin: null,
+            settings: {},
+          },
+        ]),
+        currentProfile: null,
+        settings: SafeStorage.get("bb_settings", {
+          theme: "netflix",
+          defaultServer: "vidlink",
+          ambientGlow: true,
+          cinemaDim: true,
+          bandwidthSaver: false,
+          hapticIntensity: 50,
+          privacyMode: false,
+          autoPlayNext: true,
+          showCastSection: true,
+          language: "en-US",
+          subtitleLang: "off",
+          qualityPref: "auto",
+          reducedMotion: false,
+          notificationsEnabled: true,
+          autoTheme: false,
+          showFPS: false,
+          wideMode: false,
+          tmdbKey: null,
+          ambientMode: false,
+          includeAdult: false,
+          cardHoverPreview: true,
+          theaterMode: false,
+          autoSkipIntro: false,
+          cardQualityBadge: true,
+          compactMode: false,
+          showWatchProgress: true,
+          smartRecommend: true,
+        }),
+        library: SafeStorage.get("bb_lib", { history: [], liked: [], watchlater: [] }),
+        stats: SafeStorage.get("bb_stats", {
+          hoursWatched: 0,
+          movies: 0,
+          episodes: 0,
+          lastWatchDate: null,
+          streak: 0,
+          longestStreak: 0,
+          topGenres: {},
+          weeklyActivity: Array(7).fill(0),
+        }),
+        achievements: SafeStorage.get("bb_achievements", {}),
+        cache: new Map(),
+        inflightRequests: new Map(),
+        requestQueue: [],
+        activeRequests: 0,
+        konamiIndex: 0,
+        konamiCode: [
+          "ArrowUp",
+          "ArrowUp",
+          "ArrowDown",
+          "ArrowDown",
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowLeft",
+          "ArrowRight",
+          "b",
+          "a",
+        ],
+        recentSearches: SafeStorage.get("bb_recent_searches", []),
+      };
+
+      /* ── REACTIVE STATE ────────────────────────────────────────────────────────── */
+      const State = (() => {
+        let _s = {
+          currentId: null,
+          currentType: null,
+          currentSeason: 1,
+          currentEpisode: 1,
+          currentServer: 0,
+          searchQuery: "",
+          searchPage: 1,
+          filterPage: 1,
+          currentCategory: "",
+          currentCategoryType: "movie",
+          currentGenreId: null,
+          heroItems: [],
+          heroIndex: 0,
+          wishlist: SafeStorage.get("bb_wishlist", []),
+          watchHistory: SafeStorage.get("bb_history", []),
+          infiniteScrollOn: false,
+          isFetchingMore: false,
+          searchOpen: false,
+          notifPanelOpen: false,
+          episodeProgress: SafeStorage.get("bb_ep_progress", {}),
+          continueWatching: SafeStorage.get("bb_continue", []),
+        };
+        return {
+          get(k) {
+            return _s[k];
+          },
+          set(k, v) {
+            const prev = _s[k];
+            _s[k] = v;
+            if (prev !== v) EventBus.emit(`state:${k}`, { prev, next: v });
+          },
+          toggle(k) {
+            const v = !_s[k];
+            this.set(k, v);
+            return v;
+          },
+          persist() {
+            SafeStorage.set("bb_wishlist", _s.wishlist);
+            SafeStorage.set("bb_history", _s.watchHistory);
+            SafeStorage.set("bb_ep_progress", _s.episodeProgress);
+            SafeStorage.set("bb_continue", _s.continueWatching);
+          },
+          snapshot() {
+            return { ..._s };
+          },
+        };
+      })();
+
+      /* ── SERVERS — with health status tracking ─────────────────────────────────── */
+      const SERVERS = [
+        {
+          id: "vidlink",
+          name: "VidLink Pro",
+          badge: "⚡",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://vidlink.pro/movie/${id}?primaryColor=E50914&autoplay=true`
+              : `https://vidlink.pro/tv/${id}/${s}/${e}?primaryColor=E50914&autoplay=true`,
+        },
+        {
+          id: "vidsrcpro",
+          name: "VidSrc PRO",
+          badge: "🔥",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://vidsrc.pro/embed/movie/${id}` : `https://vidsrc.pro/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "videasy",
+          name: "Videasy",
+          badge: "🎬",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://player.videasy.net/movie/${id}` : `https://player.videasy.net/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "vidsrccc",
+          name: "VidSrc CC",
+          badge: "🌐",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://vidsrc.cc/v2/embed/movie/${id}` : `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "superembed",
+          name: "SuperEmbed HD",
+          badge: "🔮",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://multiembed.mov/directstream.php?video_id=${id}`
+              : `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
+        },
+        {
+          id: "autoembed",
+          name: "AutoEmbed",
+          badge: "🤖",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://player.autoembed.cc/embed/movie/${id}`
+              : `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "2embed",
+          name: "2Embed",
+          badge: "✨",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://www.2embed.cc/embed/${id}` : `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
+        },
+        {
+          id: "vidsrcme",
+          name: "VidSrc.ME",
+          badge: "💾",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://vidsrc.me/embed/movie?tmdb=${id}`
+              : `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
+        },
+        {
+          id: "embedsu",
+          name: "Embed.su",
+          badge: "⭐",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://embed.su/embed/movie/${id}` : `https://embed.su/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "nontonid",
+          name: "NontonID",
+          badge: "🎯",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://www.NontonID.live/embed/movie/${id}`
+              : `https://www.NontonID.live/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "moviesapi",
+          name: "MoviesAPI",
+          badge: "🌊",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://moviesapi.club/movie/${id}` : `https://moviesapi.club/tv-shows/${id}-${s}-${e}`,
+        },
+        {
+          id: "rive",
+          name: "Rive Player",
+          badge: "🎯",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie"
+              ? `https://rivestream.live/embed?type=movie&id=${id}`
+              : `https://rivestream.live/embed?type=tv&id=${id}&season=${s}&episode=${e}`,
+        },
+        {
+          id: "filmxy",
+          name: "FilmXY HD",
+          badge: "🎞️",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://filmxy.vip/embed/movie/${id}` : `https://filmxy.vip/embed/tv/${id}/${s}/${e}`,
+        },
+        {
+          id: "vixsrc",
+          name: "VixSrc",
+          badge: "🔥",
+          status: "ok",
+          build: (t, id, s, e) =>
+            t === "movie" ? `https://vixsrc.to/movie/${id}` : `https://vixsrc.to/tv/${id}/${s}/${e}`,
+        },
+      ];
+
+      /* ── CONTENT ROW DEFINITIONS ───────────────────────────────────────────────── */
+      const ROWS = [
+        { id: "trending", title: "🔥 Trending Now", ep: "/trending/all/week", mt: "all", badge: "top10" },
+        {
+          id: "continue",
+          title: "▶️ Continue Watching",
+          ep: null,
+          mt: "mixed",
+          badge: "progress",
+          special: "continue",
+        },
+        { id: "popular-m", title: "🎬 Popular Movies", ep: "/movie/popular", mt: "movie" },
+        { id: "now-play", title: "🎭 Now In Theaters", ep: "/movie/now_playing", mt: "movie", badge: "new" },
+        { id: "top-m", title: "🏆 Top Rated Movies", ep: "/movie/top_rated", mt: "movie" },
+        { id: "top-t", title: "📺 Top Rated TV Shows", ep: "/tv/top_rated", mt: "tv" },
+        { id: "popular-tv", title: "🌟 Popular TV Shows", ep: "/tv/popular", mt: "tv" },
+        { id: "airing", title: "📡 Airing Today", ep: "/tv/airing_today", mt: "tv", badge: "live" },
+        {
+          id: "action",
+          title: "💥 Action & Adventure",
+          ep: "/discover/movie?with_genres=28&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "comedy",
+          title: "😂 Comedies",
+          ep: "/discover/movie?with_genres=35&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        { id: "horror", title: "👻 Horror", ep: "/discover/movie?with_genres=27&sort_by=popularity.desc", mt: "movie" },
+        {
+          id: "scifi",
+          title: "🚀 Sci-Fi & Fantasy",
+          ep: "/discover/movie?with_genres=878&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "thriller",
+          title: "🔪 Thrillers",
+          ep: "/discover/movie?with_genres=53&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "romance",
+          title: "💕 Romance",
+          ep: "/discover/movie?with_genres=10749&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "documentary",
+          title: "🎙️ Documentaries",
+          ep: "/discover/movie?with_genres=99&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "anime-tv",
+          title: "⛩️ Anime Series",
+          ep: "/discover/tv?with_genres=16&sort_by=popularity.desc",
+          mt: "tv",
+        },
+        {
+          id: "crime-tv",
+          title: "🕵️ Crime & Mystery TV",
+          ep: "/discover/tv?with_genres=80&sort_by=popularity.desc",
+          mt: "tv",
+        },
+        { id: "upcoming", title: "🗓️ Coming Soon", ep: "/movie/upcoming", mt: "movie", badge: "soon" },
+        {
+          id: "hidden-gems",
+          title: "💎 Hidden Gems",
+          ep: "/discover/movie?vote_average.gte=7.5&vote_count.gte=1000&sort_by=vote_average.desc",
+          mt: "movie",
+        },
+        {
+          id: "classic",
+          title: "🎞️ Classic Cinema",
+          ep: "/discover/movie?primary_release_date.lte=1990-01-01&sort_by=vote_average.desc&vote_count.gte=5000",
+          mt: "movie",
+        },
+        {
+          id: "family",
+          title: "👨‍👩‍👧 Family & Kids",
+          ep: "/discover/movie?with_genres=10751&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "kdrama",
+          title: "🇰🇷 K-Drama",
+          ep: "/discover/tv?with_origin_country=KR&sort_by=popularity.desc",
+          mt: "tv",
+        },
+        {
+          id: "reality",
+          title: "📸 Reality TV",
+          ep: "/discover/tv?with_genres=10764&sort_by=popularity.desc",
+          mt: "tv",
+        },
+        {
+          id: "newrelease",
+          title: "🆕 New Releases",
+          ep: "/discover/movie?primary_release_date.gte=2024-10-01&sort_by=popularity.desc",
+          mt: "movie",
+          badge: "new",
+        },
+        {
+          id: "superhero",
+          title: "🦸 Superhero",
+          ep: "/discover/movie?with_keywords=9715&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "romance",
+          title: "💕 Romance",
+          ep: "/discover/movie?with_genres=10749&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        {
+          id: "mystery",
+          title: "🔍 Mystery & Thriller",
+          ep: "/discover/movie?with_genres=9648,53&sort_by=popularity.desc",
+          mt: "movie",
+        },
+        { id: "airing_tv", title: "📡 Airing Today", ep: "/tv/airing_today", mt: "tv", badge: "live" },
+        { id: "top_rated_tv", title: "🏅 Top Rated TV All-Time", ep: "/tv/top_rated", mt: "tv" },
+        {
+          id: "bollywood",
+          title: "🇮🇳 Bollywood Hits",
+          ep: "/discover/movie?with_origin_country=IN&sort_by=popularity.desc",
+          mt: "movie",
+        },
+      ];
+
+      const GENRE_MAP = {};
+
+      /* ── ACHIEVEMENTS REGISTRY ─────────────────────────────────────────────────── */
+      const ACHIEVEMENTS_DEF = [
+        {
+          id: "first_watch",
+          name: "First Watch",
+          desc: "Watch your first title",
+          icon: "🎬",
+          rarity: "common",
+          req: (s) => s.movies + s.episodes >= 1,
+        },
+        {
+          id: "binge_starter",
+          name: "Binge Starter",
+          desc: "Watch 5 episodes in a row",
+          icon: "📺",
+          rarity: "common",
+          req: (s) => s.episodes >= 5,
+        },
+        {
+          id: "movie_buff",
+          name: "Movie Buff",
+          desc: "Watch 10 movies",
+          icon: "🍿",
+          rarity: "uncommon",
+          req: (s) => s.movies >= 10,
+        },
+        {
+          id: "night_owl",
+          name: "Night Owl",
+          desc: "Watch something after midnight",
+          icon: "🦉",
+          rarity: "uncommon",
+          req: () => new Date().getHours() >= 0 && new Date().getHours() < 4,
+        },
+        {
+          id: "explorer",
+          name: "Explorer",
+          desc: "Browse 5 different genres",
+          icon: "🗺️",
+          rarity: "uncommon",
+          req: (s) => Object.keys(s.topGenres || {}).length >= 5,
+        },
+        {
+          id: "collector",
+          name: "Collector",
+          desc: "Add 20 titles to My List",
+          icon: "📚",
+          rarity: "uncommon",
+          req: (_, wl) => wl.length >= 20,
+        },
+        {
+          id: "marathon",
+          name: "Marathon Runner",
+          desc: "Watch 50 episodes",
+          icon: "🏃",
+          rarity: "rare",
+          req: (s) => s.episodes >= 50,
+        },
+        {
+          id: "cinephile",
+          name: "Cinephile",
+          desc: "Watch 25 movies",
+          icon: "🎭",
+          rarity: "rare",
+          req: (s) => s.movies >= 25,
+        },
+        {
+          id: "streak_3",
+          name: "Hat Trick",
+          desc: "Watch 3 days in a row",
+          icon: "🎩",
+          rarity: "rare",
+          req: (s) => s.streak >= 3,
+        },
+        {
+          id: "streak_7",
+          name: "Week Warrior",
+          desc: "7-day watch streak",
+          icon: "⚔️",
+          rarity: "epic",
+          req: (s) => s.streak >= 7,
+        },
+        {
+          id: "party_host",
+          name: "Party Host",
+          desc: "Host a Watch Party",
+          icon: "🎉",
+          rarity: "epic",
+          req: () => AppState._hostedParty,
+        },
+        {
+          id: "night_100",
+          name: "Century",
+          desc: "Watch 100+ hours",
+          icon: "💯",
+          rarity: "epic",
+          req: (s) => s.hoursWatched >= 100,
+        },
+        {
+          id: "all_genres",
+          name: "Genre Master",
+          desc: "Watch from 10 different genres",
+          icon: "🌈",
+          rarity: "epic",
+          req: (s) => Object.keys(s.topGenres || {}).length >= 10,
+        },
+        {
+          id: "konami",
+          name: "Konami Master",
+          desc: "Activate the Konami code",
+          icon: "🕹️",
+          rarity: "legendary",
+          req: () => AppState._konami,
+        },
+        {
+          id: "night_200",
+          name: "No Life",
+          desc: "Watch 200+ hours",
+          icon: "👑",
+          rarity: "legendary",
+          req: (s) => s.hoursWatched >= 200,
+        },
+        {
+          id: "downloader",
+          name: "The Archivist",
+          desc: "Use the download feature",
+          icon: "💽",
+          rarity: "uncommon",
+          req: () => AppState._downloaded,
+        },
+        {
+          id: "wide_watcher",
+          name: "Cinescope",
+          desc: "Watch in 21:9 ultra-wide mode",
+          icon: "🎦",
+          rarity: "uncommon",
+          req: () => AppState._usedWide,
+        },
+        {
+          id: "cast_searcher",
+          name: "Star Tracker",
+          desc: "Search by cast member 5 times",
+          icon: "⭐",
+          rarity: "rare",
+          req: () => (AppState.stats.castSearches || 0) >= 5,
+        },
+        {
+          id: "polyglot",
+          name: "World Viewer",
+          desc: "Watch K-Drama or foreign content",
+          icon: "🌏",
+          rarity: "rare",
+          req: () => AppState._watchedForeign,
+        },
+      ];
+
+      /* ── UTILITIES ──────────────────────────────────────────────────────────────── */
+      function esc(str) {
+        if (!str) return "";
+        return String(str).replace(
+          /[&<>"']/g,
+          (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m],
+        );
+      }
+
+      function norm(item, fallback = "movie") {
+        if (!item) return null;
+        const mt = item.media_type || fallback;
+        if (mt === "person") return null;
+        return {
+          id: String(item.id),
+          title: item.title || item.name || "Untitled",
+          type: mt,
+          poster: item.poster_path ? `${CONFIG.IMG_W500}${item.poster_path}` : null,
+          poster_sm: item.poster_path ? `${CONFIG.IMG_BASE}/w185${item.poster_path}` : null,
+          backdrop: item.backdrop_path ? `${CONFIG.IMG_W1280}${item.backdrop_path}` : null,
+          backdrop_orig: item.backdrop_path ? `${CONFIG.IMG_ORIG}${item.backdrop_path}` : null,
+          desc: item.overview || "",
+          rating: item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : null,
+          votes: item.vote_count || 0,
+          year: (item.release_date || item.first_air_date || "").slice(0, 4) || null,
+          genreIds: item.genre_ids || [],
+          popularity: item.popularity || 0,
+        };
+      }
+
+      function genreNames(ids) {
+        return (ids || [])
+          .map((id) => GENRE_MAP[id])
+          .filter(Boolean)
+          .slice(0, 3);
+      }
+
+      function matchPct(r) {
+        return Math.min(99, Math.max(1, Math.round((parseFloat(r) || 0) * 10)));
+      }
+
+      function fmtRuntime(min) {
+        if (!min) return "";
+        const h = Math.floor(min / 60),
+          m = min % 60;
+        return h ? `${h}h ${m > 0 ? m + "m" : ""}`.trim() : `${m}m`;
+      }
+
+      function fmtDate(dateStr) {
+        if (!dateStr) return "";
+        try {
+          return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        } catch {
+          return dateStr;
+        }
+      }
+
+      function relTime(ts) {
+        const d = Date.now() - ts;
+        if (d < 60000) return "just now";
+        if (d < 3600000) return `${Math.floor(d / 60000)}m ago`;
+        if (d < 86400000) return `${Math.floor(d / 3600000)}h ago`;
+        return `${Math.floor(d / 86400000)}d ago`;
+      }
+
+      function qualityLabel(item, type) {
+        const yr = parseInt((item.release_date || item.first_air_date || "0").slice(0, 4));
+        const now = new Date().getFullYear();
+        const v = item.vote_count || 0;
+        if (type === "movie" && now === yr && v < 500) return { label: "CAM", cls: "q-cam", cam: true };
+        if ((item.vote_average || 0) >= 8) return { label: "4K", cls: "q-4k", cam: false };
+        if ((item.vote_average || 0) >= 7) return { label: "HD", cls: "q-hd", cam: false };
+        return { label: "SD", cls: "q-sd", cam: false };
+      }
+
+      function vibrate(l = "light") {
+        if (!navigator.vibrate || AppState.settings.hapticIntensity === 0) return;
+        const i = (AppState.settings.hapticIntensity || 50) / 100;
+        const patterns = {
+          light: [Math.round(20 * i)],
+          medium: [Math.round(30 * i), 10, Math.round(30 * i)],
+          heavy: [Math.round(50 * i), 20, Math.round(50 * i), 20, Math.round(50 * i)],
+        };
+        navigator.vibrate(patterns[l] || patterns.light);
+      }
+
+      function debounce(fn, ms) {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      }
+
+      function throttle(fn, ms) {
+        let last = 0;
+        return (...args) => {
+          const now = Date.now();
+          if (now - last >= ms) {
+            last = now;
+            fn(...args);
+          }
+        };
+      }
+
+      function deepClone(obj) {
+        try {
+          return JSON.parse(JSON.stringify(obj));
+        } catch {
+          return obj;
+        }
+      }
+
+      function getEmbedUrl(overrideServer = null) {
+        const id = State.get("currentId"),
+          type = State.get("currentType");
+        const srv = overrideServer ?? State.get("currentServer");
+        const s = State.get("currentSeason"),
+          e = State.get("currentEpisode");
+        if (!id || !type) return "";
+        let srvObj = AppState.settings.bandwidthSaver
+          ? SERVERS.find((x) => x.id === "vidsrcme") || SERVERS[SERVERS.length - 1]
+          : SERVERS[srv] || SERVERS[0];
+        return srvObj.build(type, id, s, e);
+      }
+
+      /* ── TMDB API v3 — Dual-mode (proxy ↔ direct), dedup, TTL cache, retry ──────
+   When CONFIG._hasProxy === true  → calls /api/v1/tmdb/* (server.js ApiProxy)
+   When CONFIG._hasProxy === false → calls api.themoviedb.org/3 directly
+   While probing (null) → optimistically tries the proxy, auto-downgrades.
+   Mirrors the batch route at /api/v1/tmdb/batch for multi-fetch efficiency.
+   ─────────────────────────────────────────────────────────────────────────── */
+      const TMDB = (() => {
+        const cache = AppState.cache;
+        const inflight = AppState.inflightRequests;
+
+        /* Build URL + headers for the current mode */
+        function _buildUrl(path, params) {
+          const cleanPath = "/" + path.replace(/^\/+/, "");
+          const lang = AppState.settings.language || "en-US";
+          const q = new URLSearchParams({ language: lang, ...params }).toString();
+          if (CONFIG._hasProxy !== false) {
+            return { url: `${CONFIG.TMDB_BASE}${cleanPath}?${q}`, proxy: true };
+          }
+          /* Standalone: attach key directly */
+          const key = AppState.settings.tmdbKey || CONFIG.TMDB_KEY;
+          return { url: `${CONFIG.TMDB_DIRECT}${cleanPath}?${q}&api_key=${key}`, proxy: false };
+        }
+
+        async function _raw(urlOrObj, retries = CONFIG.MAX_RETRIES) {
+          const isObj = typeof urlOrObj === "object";
+          const url = isObj ? urlOrObj.url : urlOrObj;
+          const isProxy = isObj ? urlOrObj.proxy : false;
+          for (let attempt = 0; attempt < retries; attempt++) {
+            try {
+              /* Send custom TMDB key as header so server proxy can use it */
+              const headers = {};
+              const customKey = AppState.settings.tmdbKey;
+              if (isProxy && customKey) headers["X-Tmdb-Key"] = customKey;
+              const res = await fetch(url, { signal: AbortSignal.timeout(10000), headers });
+              /* Proxy returned 404 for /health — switch to direct mode */
+              if (res.status === 404 && url.includes("/api/v1/tmdb")) {
+                CONFIG._hasProxy = false;
+                throw new Error("Proxy 404 — switching to direct");
+              }
+              if (res.status === 429) {
+                const retry = parseInt(res.headers.get("Retry-After") || 2);
+                await new Promise((r) => setTimeout(r, retry * 1000 * (attempt + 1)));
+                continue;
+              }
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return await res.json();
+            } catch (err) {
+              if (attempt === retries - 1) throw err;
+              await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500));
+            }
+          }
+        }
+
+        return {
+          async fetch(path, params = {}, ttl = CONFIG.CACHE_TTL) {
+            const urlObj = _buildUrl(path, params);
+            const url = urlObj.url;
+            const cacheKey = url;
+
+            if (cache.has(cacheKey)) {
+              const entry = cache.get(cacheKey);
+              if (Date.now() - entry.ts < ttl) return entry.data;
+              cache.delete(cacheKey);
+            }
+
+            if (inflight.has(cacheKey)) return inflight.get(cacheKey);
+
+            const req = _raw(urlObj)
+              .then((data) => {
+                if (data) cache.set(cacheKey, { data, ts: Date.now() });
+                inflight.delete(cacheKey);
+                return data;
+              })
+              .catch(async (err) => {
+                inflight.delete(cacheKey);
+                /* Auto-downgrade: if proxy failed, retry once in direct mode */
+                if (CONFIG._hasProxy !== false && url.includes("/api/v1/tmdb")) {
+                  console.warn("[TMDB] Proxy failed, retrying direct:", path);
+                  CONFIG._hasProxy = false;
+                  return this.fetch(path, params, ttl);
+                }
+                console.warn(`[TMDB] Failed: ${path}`, err.message);
+                return null;
+              });
+
+            inflight.set(cacheKey, req);
+            return req;
+          },
+
+          /* Multi-fetch — uses the server.js batch endpoint when proxy is up */
+          async fetchMulti(paths, params = {}) {
+            if (CONFIG._hasProxy === true) {
+              try {
+                const res = await fetch(CONFIG.TMDB_BATCH, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "X-BingeBox-Version": CONFIG.VERSION },
+                  body: JSON.stringify({ requests: paths.map((p) => ({ path: p, params })) }),
+                  signal: AbortSignal.timeout(15000),
+                });
+                if (res.ok) {
+                  const json = await res.json();
+                  return json.results.map((r) => (r.status === "ok" ? r.data : null));
+                }
+              } catch (_) {}
+            }
+            return Promise.all(paths.map((p) => this.fetch(p, params)));
+          },
+
+          clearCache() {
+            cache.clear();
+          },
+
+          /* Expose current mode for the UI status badge */
+          get mode() {
+            return CONFIG._hasProxy === true ? "proxy" : CONFIG._hasProxy === false ? "direct" : "probing";
+          },
+        };
+      })();
+
+      /* ── TOAST SYSTEM v2 — Queue-based, stacking, typed ────────────────────────── */
+      const Toast = (() => {
+        let queue = [];
+        let active = false;
+
+        function _show({ msg, type = "success", duration = 3200 }) {
+          active = true;
+          const t = document.getElementById("toast");
+          if (!t) {
+            active = false;
+            _next();
+            return;
+          }
+          const icons = {
+            success: "fa-check-circle",
+            error: "fa-exclamation-triangle",
+            info: "fa-info-circle",
+            warning: "fa-exclamation-circle",
+          };
+          const colors = {
+            success: "rgba(70,211,105,.5)",
+            error: "rgba(229,9,20,.5)",
+            info: "rgba(59,130,246,.5)",
+            warning: "rgba(251,191,36,.5)",
+          };
+          t.className = "toast show";
+          t.style.borderColor = colors[type] || colors.info;
+          t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+          vibrate("light");
+          clearTimeout(t._timer);
+          t._timer = setTimeout(() => {
+            t.classList.remove("show");
+            setTimeout(() => {
+              active = false;
+              _next();
+            }, 400);
+          }, duration);
+        }
+
+        function _next() {
+          if (queue.length && !active) _show(queue.shift());
+        }
+
+        return {
+          show(msg, type = "success", duration = 3200) {
+            queue.push({ msg, type, duration });
+            _next();
+          },
+        };
+      })();
+
+      function showToast(msg, type = "success", duration = 3200) {
+        Toast.show(msg, type, duration);
+      }
+
+      /* ── PROFILE SYSTEM ─────────────────────────────────────────────────────────── */
+      let _pendingProfilePin = null;
+
+      function showProfiles() {
+        document.getElementById("navbar").style.display = "none";
+        document.getElementById("pageHome").style.display = "none";
+        document.getElementById("siteFooter").style.display = "none";
+        const list = document.getElementById("profileList");
+        if (!list) return;
+        list.innerHTML =
+          AppState.profiles
+            .map(
+              (p) => `
+      <div class="profile-card" onclick="selectProfile('${p.id}')">
+         <img src="${esc(p.avatar)}" alt="${esc(p.name)}" loading="lazy">
+         <span>${esc(p.name)}</span>
+         ${p.pin ? '<div class="profile-pin-badge"><i class="fas fa-lock"></i></div>' : ""}
+      </div>`,
+            )
+            .join("") +
+          `<div class="profile-card" onclick="promptAddProfile()">
+         <div class="profile-add-circle"><i class="fas fa-plus"></i></div>
+         <span>Add Profile</span>
+      </div>`;
+        const screen = document.getElementById("profileScreen");
+        if (screen) {
+          screen.style.display = "flex";
+          screen.style.opacity = "1";
+          screen.style.visibility = "visible";
+        }
+      }
+
+      function selectProfile(id) {
+        const profile = AppState.profiles.find((p) => p.id === id);
+        if (!profile) return;
+        if (profile.pin) {
+          _pendingProfilePin = id;
+          _showPinPrompt(profile.name);
+          return;
+        }
+        _activateProfile(id);
+      }
+
+      function _showPinPrompt(name) {
+        const existing = document.getElementById("pinPromptOverlay");
+        if (existing) existing.remove();
+        const overlay = document.createElement("div");
+        overlay.id = "pinPromptOverlay";
+        overlay.innerHTML = `
+      <div class="pin-prompt-box">
+         <h3>Enter PIN for <span>${esc(name)}</span></h3>
+         <div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div>
+         <div class="pin-keypad">
+            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, '<i class="fas fa-backspace"></i>'].map((k, i) => `<button class="pin-key" onclick="_pinKey('${k}')" ${k === "" ? "disabled" : ""}>${k}</button>`).join("")}
+         </div>
+         <button class="pin-cancel-btn" onclick="document.getElementById('pinPromptOverlay').remove()">Cancel</button>
+      </div>`;
+        document.body.appendChild(overlay);
+        window._pinBuffer = "";
+      }
+
+      window._pinKey = function (k) {
+        if (k === '<i class="fas fa-backspace"></i>') {
+          window._pinBuffer = window._pinBuffer.slice(0, -1);
+        } else if (window._pinBuffer.length < 4) {
+          window._pinBuffer += k;
+        }
+        const dots = document.querySelectorAll("#pinDots span");
+        dots.forEach((d, i) => d.classList.toggle("filled", i < window._pinBuffer.length));
+        if (window._pinBuffer.length === 4) {
+          const profile = AppState.profiles.find((p) => p.id === _pendingProfilePin);
+          if (profile && window._pinBuffer === profile.pin) {
+            document.getElementById("pinPromptOverlay")?.remove();
+            _activateProfile(_pendingProfilePin);
+          } else {
+            const box = document.querySelector(".pin-prompt-box");
+            if (box) {
+              box.classList.add("pin-shake");
+              setTimeout(() => box.classList.remove("pin-shake"), 500);
+            }
+            window._pinBuffer = "";
+            document.querySelectorAll("#pinDots span").forEach((d) => d.classList.remove("filled"));
+            showToast("Incorrect PIN", "error");
+          }
+        }
+      };
+
+      function _activateProfile(id) {
+        AppState.currentProfile = AppState.profiles.find((p) => p.id === id);
+        if (!AppState.currentProfile) return;
+        const { avatar, name } = AppState.currentProfile;
+        const navImg = document.getElementById("navAvatarImg");
+        const dropImg = document.getElementById("dropAvatarImg");
+        const dropName = document.getElementById("dropProfileName");
+        if (navImg) navImg.innerHTML = `<img src="${esc(avatar)}" alt="${esc(name)}">`;
+        if (dropImg) dropImg.innerHTML = `<img src="${esc(avatar)}" alt="${esc(name)}">`;
+        if (dropName) dropName.textContent = name;
+        vibrate("light");
+        const screen = document.getElementById("profileScreen");
+        if (screen) {
+          screen.style.opacity = "0";
+          screen.style.visibility = "hidden";
+          setTimeout(() => {
+            screen.style.display = "none";
+            document.getElementById("navbar").style.display = "flex";
+            document.getElementById("pageHome").style.display = "block";
+            document.getElementById("siteFooter").style.display = "block";
+            EventBus.emit("profile:selected", AppState.currentProfile);
+          }, 600);
+        }
+      }
+
+      function promptAddProfile() {
+        const name = prompt("Profile name:");
+        if (!name?.trim()) return;
+        const seeds = ["Phoenix", "Nova", "Atlas", "Echo", "Zephyr", "Luna", "Orion", "Vega"];
+        const seed = seeds[Math.floor(Math.random() * seeds.length)];
+        const colors = ["b6e3f4", "ffd5dc", "c0aede", "d1f4e0", "ffeaa7", "ffb3c6", "bee3f8", "fbd5e5"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const newProfile = {
+          id: `p${Date.now()}`,
+          name: name.trim(),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=${color}`,
+          pin: null,
+          settings: {},
+        };
+        AppState.profiles.push(newProfile);
+        SafeStorage.set("bb_profiles", AppState.profiles);
+        showProfiles();
+        showToast(`Profile "${name.trim()}" created!`, "success");
+      }
+
+      /* ── NAVBAR ────────────────────────────────────────────────────────────────── */
+      const Navbar = {
+        init() {
+          window.addEventListener(
+            "scroll",
+            throttle(() => {
+              const nav = document.getElementById("navbar");
+              if (nav) nav.classList.toggle("solid", window.scrollY > 60);
+            }, 50),
+            { passive: true },
+          );
+
+          document.addEventListener("click", (e) => {
+            if (!e.target.closest("#accountMenu")) this.closeAccountDropdown();
+            if (!e.target.closest("#notifToggle") && !e.target.closest("#notifPanel")) {
+              const p = document.getElementById("notifPanel");
+              if (p) p.classList.remove("open");
+              State.set("notifPanelOpen", false);
+            }
+            if (!e.target.closest("#mobileNav") && !e.target.closest(".mobile-menu-btn")) this.closeMobileMenu();
+            const cm = document.getElementById("context-menu");
+            if (cm && !cm.contains(e.target)) cm.style.display = "none";
+          });
+
+          this._setupNotifications();
+        },
+
+        toggleMobileMenu() {
+          document.getElementById("mobileNav")?.classList.toggle("open");
+        },
+        closeMobileMenu() {
+          document.getElementById("mobileNav")?.classList.remove("open");
+        },
+        toggleAccountDropdown() {
+          document.getElementById("accountDropdown")?.classList.toggle("open");
+        },
+        closeAccountDropdown() {
+          document.getElementById("accountDropdown")?.classList.remove("open");
+        },
+
+        toggleNotifPanel() {
+          const p = document.getElementById("notifPanel");
+          if (!p) return;
+          const open = State.toggle("notifPanelOpen");
+          p.classList.toggle("open", open);
+          if (open) {
+            const badge = document.getElementById("notifBadge");
+            if (badge) badge.style.display = "none";
+            this._renderNotifications();
+          }
+        },
+
+        _notifications: SafeStorage.get("bb_notifs", [
+          {
+            id: "n1",
+            title: "Welcome back!",
+            body: "BingeBox Omega is ready.",
+            time: Date.now(),
+            read: false,
+            icon: "🎬",
+          },
+        ]),
+
+        _setupNotifications() {
+          EventBus.on("profile:selected", ({ name }) => {
+            this.addNotification(`Welcome, ${name}!`, "Your list and history are loaded.", "👋");
+          });
+        },
+
+        addNotification(title, body, icon = "🔔") {
+          this._notifications.unshift({ id: `n${Date.now()}`, title, body, time: Date.now(), read: false, icon });
+          this._notifications = this._notifications.slice(0, 50);
+          SafeStorage.set("bb_notifs", this._notifications);
+          const badge = document.getElementById("notifBadge");
+          if (badge) badge.style.display = "";
+        },
+
+        _renderNotifications() {
+          const container = document.getElementById("notifList");
+          if (!container) return;
+          const unread = this._notifications.filter((n) => !n.read);
+          if (!this._notifications.length) {
+            container.innerHTML = '<p class="notif-empty">No notifications</p>';
+            return;
+          }
+          container.innerHTML = this._notifications
+            .slice(0, 15)
+            .map(
+              (n) => `
+         <div class="notif-item ${n.read ? "" : "unread"}" onclick="Navbar._markRead('${n.id}')">
+            <span class="notif-icon">${n.icon}</span>
+            <div class="notif-body">
+               <p class="notif-title">${esc(n.title)}</p>
+               <p class="notif-text">${esc(n.body)}</p>
+               <p class="notif-time">${relTime(n.time)}</p>
+            </div>
+         </div>`,
+            )
+            .join("");
+          this._notifications.forEach((n) => (n.read = true));
+          SafeStorage.set("bb_notifs", this._notifications);
+        },
+
+        _markRead(id) {
+          const n = this._notifications.find((x) => x.id === id);
+          if (n) n.read = true;
+        },
+      };
+
+      /* ── HERO v2 — Swipe, trailer, preload, parallax ────────────────────────────── */
+      const Hero = {
+        _interval: null,
+        _touchStart: 0,
+        _touchStartY: 0,
+
+        render(item) {
+          const el = document.getElementById("hero");
+          if (!el || !item) return;
+          el.style.cssText = item.backdrop
+            ? `background-image:linear-gradient(77deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.55) 45%,rgba(0,0,0,.15) 80%),url('${item.backdrop}');background-size:cover;background-position:center top;`
+            : "";
+          const badge = el.querySelector(".hero-badge");
+          const match = el.querySelector(".hero-match");
+          const title = el.querySelector(".hero-title");
+          const desc = el.querySelector(".hero-desc");
+          const genres = el.querySelector(".hero-genres");
+          if (badge) badge.textContent = item.type === "tv" ? "SERIES" : "FILM";
+          if (match) match.textContent = `${matchPct(item.rating)}% Match`;
+          if (title) title.textContent = item.title;
+          if (desc) desc.textContent = (item.desc || "").slice(0, 200) + (item.desc?.length > 200 ? "…" : "");
+          if (genres)
+            genres.innerHTML = genreNames(item.genreIds)
+              .map((g) => `<span class="hero-genre-tag">${esc(g)}</span>`)
+              .join("");
+
+          const playBtn = el.querySelector(".hero-play-btn");
+          const infoBtn = el.querySelector(".hero-info-btn");
+          const trailerBtn = el.querySelector(".hero-trailer-btn");
+          const wishBtn = el.querySelector(".hero-wish-btn");
+
+          if (playBtn) playBtn.onclick = () => openDetailModal(item.id, item.type, true);
+          if (infoBtn) infoBtn.onclick = () => openDetailModal(item.id, item.type, false);
+          if (trailerBtn) trailerBtn.onclick = () => this.openTrailer(item.id, item.type);
+          if (wishBtn) {
+            const inList = State.get("wishlist").some((w) => w.id === item.id);
+            wishBtn.innerHTML = `<i class="fas ${inList ? "fa-check" : "fa-plus"}"></i> ${inList ? "Added" : "My List"}`;
+            wishBtn.onclick = () => toggleWishlist(item.id, item.type, item.title, item.poster || "", item.year || "");
+          }
+
+          /* Store current item for new-HTML button callbacks */
+          window._currentHeroItem = item;
+          /* Fire render hook so new-HTML ID-based elements get updated */
+          if (typeof window._heroRenderHook === "function") window._heroRenderHook(item);
+
+          /* Update dots */
+          const dots = document.querySelectorAll(".hero-dot");
+          dots.forEach((d, i) => d.classList.toggle("active", i === State.get("heroIndex")));
+        },
+
+        next() {
+          const items = State.get("heroItems"),
+            len = items.length;
+          if (!len) return;
+          const idx = (State.get("heroIndex") + 1) % len;
+          State.set("heroIndex", idx);
+          this.render(items[idx]);
+        },
+
+        prev() {
+          const items = State.get("heroItems"),
+            len = items.length;
+          if (!len) return;
+          const idx = (State.get("heroIndex") - 1 + len) % len;
+          State.set("heroIndex", idx);
+          this.render(items[idx]);
+        },
+
+        jumpTo(i) {
+          const items = State.get("heroItems");
+          if (!items[i]) return;
+          State.set("heroIndex", i);
+          this.render(items[i]);
+          this.restartCycle();
+        },
+
+        startCycle() {
+          this.stopCycle();
+          this._interval = setInterval(() => this.next(), 7000);
+          const hero = document.getElementById("hero");
+          if (hero) {
+            hero.addEventListener("mouseenter", () => this.stopCycle(), { passive: true });
+            hero.addEventListener("mouseleave", () => this.startCycle(), { passive: true });
+            /* Touch swipe */
+            hero.addEventListener(
+              "touchstart",
+              (e) => {
+                this._touchStart = e.touches[0].clientX;
+                this._touchStartY = e.touches[0].clientY;
+              },
+              { passive: true },
+            );
+            hero.addEventListener(
+              "touchend",
+              (e) => {
+                const dx = e.changedTouches[0].clientX - this._touchStart;
+                const dy = e.changedTouches[0].clientY - this._touchStartY;
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                  dx < 0 ? this.next() : this.prev();
+                  this.restartCycle();
+                }
+              },
+              { passive: true },
+            );
+          }
+        },
+
+        stopCycle() {
+          clearInterval(this._interval);
+        },
+
+        restartCycle() {
+          this.stopCycle();
+          this.startCycle();
+        },
+
+        async load() {
+          const data = await TMDB.fetch("/trending/movie/week");
+          if (!data?.results) return;
+          const items = data.results
+            .slice(0, 8)
+            .map((i) => norm(i, "movie"))
+            .filter(Boolean);
+          State.set("heroItems", items);
+          State.set("heroIndex", 0);
+          const dotsEl = document.getElementById("heroDots");
+          if (dotsEl)
+            dotsEl.innerHTML = items
+              .map(
+                (_, i) =>
+                  `<button class="hero-dot ${i === 0 ? "active" : ""}" onclick="Hero.jumpTo(${i})" aria-label="Slide ${i + 1}"></button>`,
+              )
+              .join("");
+          this.render(items[0]);
+          this.startCycle();
+        },
+
+        async openTrailer(id, type) {
+          const data = await TMDB.fetch(`/${type}/${id}/videos`);
+          const trailer = (data?.results || []).find(
+            (v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+          );
+          if (!trailer) {
+            showToast("No trailer available", "info");
+            return;
+          }
+          const overlay = document.createElement("div");
+          overlay.id = "trailerOverlay";
+          overlay.innerHTML = `
+         <div class="trailer-box">
+            <button class="trailer-close-btn" onclick="document.getElementById('trailerOverlay').remove()"><i class="fas fa-times"></i></button>
+            <iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0" allowfullscreen allow="autoplay"></iframe>
+         </div>`;
+          overlay.onclick = (e) => {
+            if (e.target === overlay) overlay.remove();
+          };
+          document.body.appendChild(overlay);
+        },
+      };
+
+      /* ── ROWS v2 — Lazy IntersectionObserver, touch drag, virtual overflow ─────── */
+      const Rows = {
+        card(item, badge, rank) {
+          if (!item) return "";
+          const mp = matchPct(item.rating);
+          const inList = State.get("wishlist").some((w) => w.id === item.id);
+          const progress = (State.get("episodeProgress")[item.id] || {}).pct;
+          const badgeHTML =
+            badge === "top10" && rank != null
+              ? `<div class="top10-badge">#${rank + 1}</div>`
+              : badge === "new"
+                ? `<div class="new-badge">NEW</div>`
+                : badge === "live"
+                  ? `<div class="live-badge">LIVE</div>`
+                  : badge === "soon"
+                    ? `<div class="soon-badge">SOON</div>`
+                    : "";
+          const progressBar = progress
+            ? `<div class="card-progress"><div class="card-progress-fill" style="width:${progress}%"></div></div>`
+            : "";
+          const encodedItem = encodeURIComponent(
+            JSON.stringify({
+              id: item.id,
+              type: item.type,
+              title: item.title,
+              poster_path: item.poster?.split("/w500")[1],
+              release_date: item.year + "-01-01",
+              first_air_date: item.year + "-01-01",
+              vote_average: item.rating,
+            }),
+          );
+          return `<article class="card" tabindex="0" role="button" aria-label="${esc(item.title)}"
+         onclick="openDetailModal('${esc(item.id)}','${item.type}',false)"
+         oncontextmenu="showContextMenu(event,'${esc(item.id)}','${item.type}','${encodedItem}')"
+         onkeydown="if(event.key==='Enter')openDetailModal('${esc(item.id)}','${item.type}',false)">
+         <div class="card-img-wrap">
+            ${badgeHTML}
+            ${
+              item.poster
+                ? `<img class="card-img" src="${item.poster}" loading="lazy" alt="${esc(item.title)}" decoding="async">`
+                : `<div class="card-img card-no-img"><i class="fas fa-film"></i></div>`
+            }
+            ${progressBar}
+            <div class="card-overlay">
+               <div class="card-overlay-meta">
+                  <span class="card-match">${mp}% Match</span>
+                  <span class="card-year">${item.year || ""}</span>
+               </div>
+               <div class="card-overlay-actions">
+                  <button class="card-circle card-play-btn" onclick="event.stopPropagation();openDetailModal('${esc(item.id)}','${item.type}',true)" aria-label="Play">
+                     <i class="fas fa-play"></i>
+                  </button>
+                  <button class="card-circle ${inList ? "in-list" : ""}" onclick="event.stopPropagation();toggleWishlist('${esc(item.id)}','${item.type}','${esc(item.title)}','${item.poster || ""}','${item.year || ""}')" aria-label="${inList ? "Remove from" : "Add to"} list">
+                     <i class="fas ${inList ? "fa-check" : "fa-plus"}"></i>
+                  </button>
+               </div>
+               <p class="card-overlay-title">${esc(item.title)}</p>
+               <p class="card-overlay-genres">${genreNames(item.genreIds).join(" • ")}</p>
+            </div>
+         </div>
+      </article>`;
+        },
+
+        async load(rowDef) {
+          const rowEl = document.getElementById(`row-${rowDef.id}`);
+          if (!rowEl) return;
+
+          /* Handle special rows */
+          if (rowDef.special === "continue") {
+            const cw = State.get("continueWatching");
+            if (!cw.length) {
+              rowEl.closest(".content-row")?.style.setProperty("display", "none");
+              return;
+            }
+            rowEl.innerHTML = cw.map((item) => this.continueCard(item)).join("");
+            this._initDrag(rowEl);
+            return;
+          }
+
+          rowEl.innerHTML = Array(8).fill('<div class="card card-skeleton"></div>').join("");
+          const data = await TMDB.fetch(rowDef.ep, { page: 1 });
+          if (!data?.results) {
+            rowEl.innerHTML = '<p class="row-error">Failed to load</p>';
+            return;
+          }
+          rowEl.innerHTML = data.results
+            .map((i) => norm(i, rowDef.mt === "all" ? i.media_type || "movie" : rowDef.mt))
+            .filter(Boolean)
+            .slice(0, 20)
+            .map((item, idx) => this.card(item, rowDef.badge, idx))
+            .join("");
+          this._initDrag(rowEl);
+        },
+
+        continueCard(item) {
+          const pct = item.pct || 0;
+          return `<article class="card card-continue" onclick="openDetailModal('${esc(item.id)}','${item.type}',true)">
+         <div class="card-img-wrap">
+            ${item.poster ? `<img class="card-img" src="${item.poster}" loading="lazy">` : `<div class="card-img card-no-img"><i class="fas fa-film"></i></div>`}
+            <div class="card-continue-overlay"><i class="fas fa-play"></i></div>
+            <div class="card-progress"><div class="card-progress-fill" style="width:${pct}%"></div></div>
+         </div>
+      </article>`;
+        },
+
+        buildAll() {
+          const container = document.getElementById("contentRows");
+          if (!container) return;
+          ROWS.forEach((row) => {
+            const rowEl = document.createElement("div");
+            rowEl.className = "content-row";
+            rowEl.id = `content-row-${row.id}`;
+            rowEl.innerHTML = `
+            <div class="row-header">
+               <h2 class="row-title">${row.title}</h2>
+               <button class="row-see-all" onclick="showCategoryFromRow('${row.id}','${row.mt}','${esc(row.title)}')">See All ›</button>
+            </div>
+            <div class="row-track" id="row-${row.id}" role="list"></div>`;
+            container.appendChild(rowEl);
+
+            /* Lazy-load row when visible */
+            const obs = new IntersectionObserver(
+              (entries) => {
+                if (entries[0].isIntersecting) {
+                  obs.disconnect();
+                  this.load(row);
+                }
+              },
+              { rootMargin: "200px" },
+            );
+            obs.observe(rowEl);
+          });
+        },
+
+        /* Mouse-drag horizontal scroll */
+        _initDrag(el) {
+          let isDown = false,
+            startX = 0,
+            scrollLeft = 0;
+          el.addEventListener(
+            "mousedown",
+            (e) => {
+              isDown = true;
+              el.classList.add("dragging");
+              startX = e.pageX - el.offsetLeft;
+              scrollLeft = el.scrollLeft;
+            },
+            { passive: true },
+          );
+          el.addEventListener(
+            "mouseleave",
+            () => {
+              isDown = false;
+              el.classList.remove("dragging");
+            },
+            { passive: true },
+          );
+          el.addEventListener(
+            "mouseup",
+            () => {
+              isDown = false;
+              el.classList.remove("dragging");
+            },
+            { passive: true },
+          );
+          el.addEventListener(
+            "mousemove",
+            (e) => {
+              if (!isDown) return;
+              const x = e.pageX - el.offsetLeft;
+              el.scrollLeft = scrollLeft - (x - startX) * 1.2;
+            },
+            { passive: true },
+          );
+        },
+      };
+
+      /* Expose to HTML onclick */
+      window.showCategoryFromRow = (rowId, mt, title) => {
+        const row = ROWS.find((r) => r.id === rowId);
+        if (!row || !row.ep) return;
+        showResultsPanel(title);
+        State.set("currentCategoryType", mt === "all" ? "movie" : mt);
+        State.set("currentCategory", row.ep);
+        State.set("filterPage", 1);
+        TMDB.fetch(row.ep, { page: 1 }).then((data) => {
+          const grid = document.getElementById("searchResultsGrid");
+          if (!grid || !data?.results) return;
+          const effectiveMt = mt === "all" ? null : mt;
+          grid.innerHTML = data.results.map((i) => gridCard(norm(i, effectiveMt || i.media_type || "movie"))).join("");
+          document.getElementById("loadMoreBtn").style.display = data.page < data.total_pages ? "flex" : "none";
+        });
+      };
+
+      /* ── WATCH PARTY ENGINE v3 — Reconnect, emoji, typing, timestamps ───────────── */
+      const PartyEngine = {
+        ws: null,
+        room: null,
+        isHost: false,
+        _pingInterval: null,
+        _reconnectTimer: null,
+        _reconnectAttempts: 0,
+        _maxReconnect: 5,
+        _typingTimer: null,
+        url: "wss://echo.websocket.events",
+        users: [],
+        reactions: ["❤️", "😂", "😮", "😭", "🔥", "👏", "💀", "🎉"],
+
+        connect(code) {
+          this.room = code;
+          this._reconnectAttempts = 0;
+          this._doConnect();
+        },
+
+        _doConnect() {
+          try {
+            this.ws = new WebSocket(this.url);
+          } catch (e) {
+            this.addSysMsg("WebSocket not supported.");
+            return;
+          }
+          this.ws.onopen = () => {
+            this._reconnectAttempts = 0;
+            document.getElementById("partySidebar")?.classList.add("open");
+            document.getElementById("partyModal").style.display = "none";
+            document.getElementById("partyCodeDisplay").innerText = this.room;
+            this.addSysMsg(`✅ Connected to Room: ${this.room}`);
+            this._startPing();
+            if (this.isHost) this.broadcastSync();
+            EventBus.emit("party:connected", { room: this.room, isHost: this.isHost });
+            if (this.isHost) AppState._hostedParty = true;
+          };
+          this.ws.onmessage = (e) => {
+            try {
+              const data = JSON.parse(e.data);
+              if (data.type === "chat") this.addChatMsg(data.msg, false, data.user, data.ts);
+              if (data.type === "reaction") this._showReactionBurst(data.emoji);
+              if (data.type === "typing") this._showTyping(data.user);
+              if (data.type === "ping") return;
+              if (data.type === "sync" && !this.isHost) {
+                if (State.get("currentId") !== data.mediaId) {
+                  this.addSysMsg("⚡ Host changed content. Syncing…");
+                  openDetailModal(data.mediaId, data.mediaType);
+                }
+              }
+            } catch {
+              if (!e.data.includes("echo.websocket.events")) this.addChatMsg(e.data, false, "Guest", Date.now());
+            }
+          };
+          this.ws.onclose = () => {
+            this._stopPing();
+            this.addSysMsg("⚠️ Disconnected from party server.");
+            if (this._reconnectAttempts < this._maxReconnect) {
+              const delay = Math.pow(2, this._reconnectAttempts) * 1000;
+              this.addSysMsg(
+                `🔄 Reconnecting in ${delay / 1000}s… (attempt ${this._reconnectAttempts + 1}/${this._maxReconnect})`,
+              );
+              this._reconnectTimer = setTimeout(() => {
+                this._reconnectAttempts++;
+                this._doConnect();
+              }, delay);
+            } else {
+              this.addSysMsg("❌ Could not reconnect. Please rejoin manually.");
+            }
+          };
+          this.ws.onerror = () => this.addSysMsg("⚠️ Party connection error.");
+        },
+
+        _startPing() {
+          this._pingInterval = setInterval(() => {
+            if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type: "ping" }));
+          }, 25000);
+        },
+
+        _stopPing() {
+          clearInterval(this._pingInterval);
+        },
+
+        promptCreate() {
+          const id = State.get("currentId");
+          if (!id) {
+            showToast("Open a movie or show first!", "info");
+            return;
+          }
+          this.isHost = true;
+          const code = Math.floor(10000000 + Math.random() * 90000000).toString();
+          this.connect(code);
+          vibrate("heavy");
+          /* Copy code to clipboard */
+          navigator.clipboard?.writeText(code).then(() => showToast(`Party code ${code} copied!`, "success"));
+        },
+
+        showJoinModal() {
+          const m = document.getElementById("partyModal");
+          if (m) m.style.display = "flex";
+        },
+
+        joinRoom() {
+          const input = document.getElementById("partyJoinCode");
+          const code = input?.value?.trim();
+          if (!code || code.length !== 8) {
+            showToast("Enter a valid 8-digit code", "error");
+            return;
+          }
+          this.isHost = false;
+          this.connect(code);
+        },
+
+        leaveRoom() {
+          clearTimeout(this._reconnectTimer);
+          this._reconnectAttempts = this._maxReconnect; // prevent auto-reconnect
+          if (this.ws) this.ws.close();
+          document.getElementById("partySidebar")?.classList.remove("open");
+          this.room = null;
+          showToast("Left the party", "info");
+        },
+
+        sendMessage() {
+          const input = document.getElementById("partyInput");
+          if (!input?.value.trim() || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+          const msg = input.value.trim();
+          const payload = JSON.stringify({
+            type: "chat",
+            msg,
+            user: AppState.currentProfile?.name || "You",
+            ts: Date.now(),
+          });
+          this.ws.send(payload);
+          this.addChatMsg(msg, true, AppState.currentProfile?.name || "You", Date.now());
+          input.value = "";
+        },
+
+        sendReaction(emoji) {
+          if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+          this.ws.send(JSON.stringify({ type: "reaction", emoji }));
+          this._showReactionBurst(emoji);
+        },
+
+        _showReactionBurst(emoji) {
+          const sidebar = document.getElementById("partySidebar");
+          if (!sidebar) return;
+          const el = document.createElement("div");
+          el.className = "reaction-burst";
+          el.textContent = emoji;
+          el.style.cssText = `left:${20 + Math.random() * 60}%;`;
+          sidebar.appendChild(el);
+          setTimeout(() => el.remove(), 2000);
+        },
+
+        sendTyping() {
+          if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+          clearTimeout(this._typingTimer);
+          this.ws.send(JSON.stringify({ type: "typing", user: AppState.currentProfile?.name || "Someone" }));
+        },
+
+        _showTyping(user) {
+          const indicator = document.getElementById("partyTypingIndicator");
+          if (!indicator) return;
+          indicator.textContent = `${user} is typing…`;
+          indicator.style.display = "";
+          clearTimeout(this._typingTimer);
+          this._typingTimer = setTimeout(() => {
+            if (indicator) indicator.style.display = "none";
+          }, 2000);
+        },
+
+        broadcastSync() {
+          if (this.ws?.readyState === WebSocket.OPEN && this.isHost) {
+            this.ws.send(
+              JSON.stringify({ type: "sync", mediaId: State.get("currentId"), mediaType: State.get("currentType") }),
+            );
+          }
+        },
+
+        addChatMsg(text, isSelf, user = "", ts = Date.now()) {
+          const c = document.getElementById("partyMessages");
+          if (!c) return;
+          const time = new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          c.insertAdjacentHTML(
+            "beforeend",
+            `
+         <div class="party-msg ${isSelf ? "self" : ""}">
+            ${!isSelf && user ? `<span class="party-msg-user">${esc(user)}</span>` : ""}
+            <span class="party-msg-text">${esc(text)}</span>
+            <span class="party-msg-time">${time}</span>
+         </div>`,
+          );
+          c.scrollTop = c.scrollHeight;
+          if (!isSelf) vibrate("light");
+        },
+
+        addSysMsg(text) {
+          const c = document.getElementById("partyMessages");
+          if (!c) return;
+          c.insertAdjacentHTML("beforeend", `<div class="party-msg party-sys-msg">${esc(text)}</div>`);
+          c.scrollTop = c.scrollHeight;
+        },
+
+        renderReactionBar() {
+          const bar = document.getElementById("partyReactionBar");
+          if (!bar) return;
+          bar.innerHTML = this.reactions
+            .map((e) => `<button class="reaction-btn" onclick="PartyEngine.sendReaction('${e}')">${e}</button>`)
+            .join("");
+        },
+      };
+
+      /* ── DETAIL MODAL v2 — Cast, trailers, reviews, episode progress ─────────────── */
+      async function openDetailModal(id, type, autoPlay = false) {
+        State.set("currentId", String(id));
+        State.set("currentType", type);
+        State.set("currentSeason", 1);
+        State.set("currentEpisode", 1);
+        State.set("currentServer", 0);
+
+        const body = document.getElementById("detailModalBody");
+        if (!body) return;
+        body.innerHTML = `<div class="detail-loading"><div class="detail-spinner"></div><span>Loading…</span></div>`;
+        const overlay = document.getElementById("detailOverlay");
+        overlay?.classList.add("active");
+        document.body.style.overflow = "hidden";
+        history.pushState({ view: "modal", id, type }, "");
+
+        try {
+          const [detail, credits, similar, videos] = await Promise.all([
+            TMDB.fetch(`/${type}/${id}`, { append_to_response: "release_dates,content_ratings" }),
+            TMDB.fetch(`/${type}/${id}/credits`),
+            TMDB.fetch(`/${type}/${id}/similar`, { page: 1 }),
+            TMDB.fetch(`/${type}/${id}/videos`),
+          ]);
+
+          if (!detail) throw new Error("No data");
+
+          const item = norm(detail, type);
+          const title = detail.title || detail.name || "";
+          const year = (detail.release_date || detail.first_air_date || "").slice(0, 4);
+          const mp = matchPct(detail.vote_average);
+          const q = qualityLabel(detail, type);
+          const inList = State.get("wishlist").some((w) => w.id === String(id));
+          const ns = detail.number_of_seasons || 0;
+          const runtime = fmtRuntime(detail.runtime || detail.episode_run_time?.[0]);
+          const trailer = (videos?.results || []).find(
+            (v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+          );
+
+          /* Cast cards */
+          const cast = (credits?.cast || []).slice(0, 12);
+          const castHTML =
+            cast.length && AppState.settings.showCastSection
+              ? `
+         <div class="cast-section">
+            <h3 class="detail-section-title">Cast</h3>
+            <div class="cast-row">
+               ${cast
+                 .map(
+                   (c) => `
+                  <div class="cast-card" onclick="searchByCast('${esc(c.name)}')" title="Search: ${esc(c.name)}" role="button" tabindex="0">
+                     ${
+                       c.profile_path
+                         ? `<img class="cast-img" src="${CONFIG.IMG_BASE}/w185${c.profile_path}" loading="lazy" alt="${esc(c.name)}">`
+                         : `<div class="cast-img cast-no-img"><i class="fas fa-user"></i></div>`
+                     }
+                     <p class="cast-name">${esc(c.name)}</p>
+                     <p class="cast-character">${esc(c.character || "")}</p>
+                     <p class="cast-search-hint"><i class="fas fa-search"></i> Search</p>
+                  </div>`,
+                 )
+                 .join("")}
+            </div>
+         </div>`
+              : "";
+
+          /* Similar cards */
+          const simCards = (similar?.results || [])
+            .slice(0, 8)
+            .map((s) => norm(s, type))
+            .filter(Boolean)
+            .map(
+              (s) => `
+         <article class="sim-card" onclick="openDetailModal('${s.id}','${s.type}',false)">
+            ${s.poster ? `<img class="sim-card-img" src="${s.poster}" loading="lazy">` : '<div class="sim-card-img sim-no-img"><i class="fas fa-film"></i></div>'}
+            <div class="sim-card-body">
+               <div class="sim-card-head"><span class="sim-match">${matchPct(s.rating)}% Match</span><span class="sim-year">${s.year || ""}</span></div>
+               <p class="sim-card-title">${esc(s.title)}</p>
+               <p class="sim-card-desc">${esc((s.desc || "").slice(0, 120))}</p>
+            </div>
+         </article>`,
+            )
+            .join("");
+
+          /* Content rating */
+          const ratings = detail.release_dates?.results || detail.content_ratings?.results || [];
+          const usRating = ratings.find((r) => r.iso_3166_1 === "US");
+          const contentRating = usRating?.release_dates?.[0]?.certification || usRating?.rating || "";
+
+          body.innerHTML = `
+         <button class="modal-close" onclick="closeDetailModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+         <div class="detail-hero" style="${item?.backdrop ? `background-image:url('${item.backdrop}')` : ""};background-size:cover;background-position:center;">
+            <div class="detail-hero-fade"></div>
+            <div class="detail-hero-inner">
+               <h2 class="detail-hero-title">${esc(title)}</h2>
+               <div class="detail-hero-actions">
+                  <button class="btn-play-primary" onclick="startPlaying()"><i class="fas fa-play"></i> Play Now</button>
+                  ${trailer ? `<button class="btn-trailer" onclick="Hero.openTrailer('${id}','${type}')"><i class="fab fa-youtube"></i> Trailer</button>` : ""}
+                  <button class="btn-party" onclick="PartyEngine.promptCreate()"><i class="fas fa-users"></i> Watch Party</button>
+                  <button class="circle-action ${inList ? "in-list" : ""}" id="detailListBtn" onclick="toggleWishlist('${id}','${type}','${esc(title)}','${item?.poster || ""}','${year}')" aria-label="${inList ? "Remove from" : "Add to"} list">
+                     <i class="fas ${inList ? "fa-check" : "fa-plus"}"></i>
+                  </button>
+                  <button class="circle-action" onclick="shareMedia('${esc(title)}','${id}','${type}')" aria-label="Share"><i class="fas fa-share-alt"></i></button>
+                  <button class="btn-download" onclick="openDownloadModal('${id}','${type}','${esc(title)}')" aria-label="Download" title="Download via VidSrc"><i class="fas fa-download"></i> Download</button>
+               </div>
+            </div>
+         </div>
+
+         <div class="player-section" id="playerSection" style="display:none;">
+            <div class="player-box" id="playerBox">
+               <iframe id="streamPlayer"
+                 allowfullscreen
+                 allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
+                 referrerpolicy="no-referrer"
+                 loading="lazy"></iframe>
+               <div class="player-bar">
+                  <div class="player-bar-left">
+                     <span class="media-quality ${q.cls}">${q.label}</span>
+                     <span class="player-title-label">${esc(title)}</span>
+                  </div>
+                  <div class="player-bar-right">
+                     <button class="pbtn" onclick="openServerPicker()" title="Change server"><i class="fas fa-server"></i> <span id="serverName">${SERVERS[0].name}</span></button>
+                     <button class="pbtn pbtn-wide" id="wideBtn" onclick="toggleWideMode()" title="Toggle 21:9 wide mode"><i class="fas fa-arrows-alt-h"></i> Wide</button>
+                     <button class="pbtn" onclick="saveWallpaper()" title="Save backdrop as wallpaper"><i class="fas fa-image"></i></button>
+                     <button class="pbtn" onclick="toggleSubtitleNote()" title="Subtitles"><i class="fas fa-closed-captioning"></i></button>
+                     <button class="pbtn pbtn-popout" onclick="popOutPlayer()" title="Open in new tab"><i class="fas fa-external-link-alt"></i> Pop Out</button>
+                     <button class="pbtn" id="fsBtn" onclick="goFullscreen()"><i class="fas fa-expand"></i> Cinema</button>
+                     ${type === "tv" ? `<button class="pbtn" onclick="nextEpisode()"><i class="fas fa-forward"></i> Next Ep</button>` : ""}
+                  </div>
+               </div>
+               <div id="serverPickerDropdown" class="server-picker-dropdown" style="display:none;">
+                  ${SERVERS.map(
+                    (srv, i) => `
+                     <button class="server-option ${i === State.get("currentServer") ? "active" : ""}" onclick="switchServerTo(${i})">
+                        <span>${srv.badge} ${srv.name}</span>
+                        <span class="server-status ${srv.status === "ok" ? "status-ok" : "status-err"}">●</span>
+                     </button>`,
+                  ).join("")}
+               </div>
+            </div>
+         </div>
+
+         <div class="detail-body">
+            <div class="detail-meta-row">
+               <span class="match-badge">${mp}% Match</span>
+               <span class="year-badge">${year}</span>
+               ${runtime ? `<span class="runtime-badge">${runtime}</span>` : ""}
+               ${contentRating ? `<span class="rating-badge">${esc(contentRating)}</span>` : ""}
+               <span class="media-quality ${q.cls}">${q.label}</span>
+            </div>
+            <p class="detail-desc">${esc(detail.overview || "No overview available.")}</p>
+            <div class="detail-info-row">
+               ${detail.genres?.length ? `<p><span class="info-label">Genres:</span> ${detail.genres.map((g) => `<button class="genre-tag-btn" onclick="filterByGenre(${g.id},'${esc(g.name)}')">${esc(g.name)}</button>`).join("")}</p>` : ""}
+               ${type === "tv" && ns > 0 ? `<p><span class="info-label">Seasons:</span> ${ns}</p>` : ""}
+               ${detail.production_companies?.[0] ? `<p><span class="info-label">Studio:</span> ${esc(detail.production_companies[0].name)}</p>` : ""}
+            </div>
+
+            ${
+              type === "tv" && ns > 0
+                ? `
+            <div class="episodes-section mt-6">
+               <div class="episodes-top">
+                  <h3 class="detail-section-title">Episodes</h3>
+                  <select class="season-select" onchange="loadEpisodes(${id},parseInt(this.value))">
+                     ${Array.from({ length: ns }, (_, i) => `<option value="${i + 1}">Season ${i + 1}</option>`).join("")}
+                  </select>
+               </div>
+               <div class="ep-list" id="epList"></div>
+            </div>`
+                : ""
+            }
+
+            ${castHTML}
+            ${simCards ? `<div class="similar-section mt-6"><h3 class="detail-section-title">More Like This</h3><div class="similar-grid">${simCards}</div></div>` : ""}
+         </div>`;
+
+          if (type === "tv" && ns > 0) loadEpisodes(id, 1);
+          if (autoPlay) setTimeout(() => startPlaying(), 350);
+          if (!AppState.settings.privacyMode) {
+            addToHistory(String(id), type, title, item?.poster || "", year);
+            _trackStats(type, detail.genres || []);
+          }
+          if (PartyEngine.isHost) PartyEngine.broadcastSync();
+        } catch (err) {
+          body.innerHTML = `<div class="detail-error"><i class="fas fa-exclamation-triangle"></i><p>Failed to load details.</p><button class="btn-retry" onclick="openDetailModal('${id}','${type}',${autoPlay})">Try Again</button></div>`;
+        }
+      }
+
+      function closeDetailModal() {
+        document.getElementById("detailOverlay")?.classList.remove("active");
+        document.body.style.overflow = "";
+        const iframe = document.getElementById("streamPlayer");
+        if (iframe) iframe.src = "";
+        if (history.state?.view === "modal") history.back();
+        if (document.getElementById("playerBox")?.classList.contains("cinema-mode")) _exitCinema();
+      }
+
+      function startPlaying() {
+        const sec = document.getElementById("playerSection");
+        const iframe = document.getElementById("streamPlayer");
+        const pBox = document.getElementById("playerBox");
+        if (!sec || !iframe) return;
+        sec.style.display = "block";
+        pBox.classList.toggle("glow-active", !!AppState.settings.ambientGlow);
+        iframe.src = getEmbedUrl();
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+        _updateContinueWatching();
+        showToast("Stream started — OmegaShield active!", "success");
+        EventBus.emit("player:start", { id: State.get("currentId"), type: State.get("currentType") });
+        vibrate("medium");
+      }
+
+      function switchServer() {
+        let srv = (State.get("currentServer") + 1) % SERVERS.length;
+        switchServerTo(srv);
+      }
+
+      function switchServerTo(idx) {
+        State.set("currentServer", idx);
+        const iframe = document.getElementById("streamPlayer");
+        if (iframe?.src) iframe.src = getEmbedUrl();
+        const nameEl = document.getElementById("serverName");
+        if (nameEl) nameEl.textContent = SERVERS[idx]?.name || "";
+        /* Update picker active state */
+        document.querySelectorAll(".server-option").forEach((el, i) => el.classList.toggle("active", i === idx));
+        document.getElementById("serverPickerDropdown").style.display = "none";
+        showToast(`Switched to ${SERVERS[idx]?.name}`);
+      }
+
+      function openServerPicker() {
+        const dd = document.getElementById("serverPickerDropdown");
+        if (dd) dd.style.display = dd.style.display === "none" ? "block" : "none";
+      }
+
+      function nextEpisode() {
+        const id = State.get("currentId");
+        const season = State.get("currentSeason");
+        const ep = State.get("currentEpisode");
+        State.set("currentEpisode", ep + 1);
+        startPlaying();
+        showToast(`Playing S${season}E${ep + 1}`);
+        /* Update active ep card */
+        document.querySelectorAll(".ep-card").forEach((c) => {
+          const epNum = parseInt(c.dataset.ep);
+          c.classList.toggle("ep-active", epNum === ep + 1);
+        });
+      }
+
+      function goFullscreen() {
+        const box = document.getElementById("playerBox");
+        const btn = document.getElementById("fsBtn");
+        const backdrop = document.getElementById("cinemaBackdrop");
+        const overlay = document.getElementById("detailOverlay");
+        if (!box) return;
+        if (AppState.settings.cinemaDim) {
+          const entering = !box.classList.contains("cinema-mode");
+          box.classList.toggle("cinema-mode", entering);
+          if (overlay) overlay.style.overflowY = entering ? "hidden" : "auto";
+          if (backdrop) {
+            backdrop.style.opacity = entering ? "1" : "0";
+            backdrop.style.pointerEvents = entering ? "auto" : "none";
+          }
+          if (btn)
+            btn.innerHTML = entering
+              ? '<i class="fas fa-compress"></i> Exit Cinema'
+              : '<i class="fas fa-expand"></i> Cinema Mode';
+          if (!entering) box.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          if (!document.fullscreenElement) box.requestFullscreen().catch((e) => console.warn(e));
+          else document.exitFullscreen();
+        }
+      }
+
+      function _exitCinema() {
+        const box = document.getElementById("playerBox");
+        if (box?.classList.contains("cinema-mode")) goFullscreen();
+      }
+
+      /* ── EPISODES — with progress tracking ─────────────────────────────────────── */
+      async function loadEpisodes(tvId, season) {
+        State.set("currentSeason", parseInt(season));
+        State.set("currentEpisode", 1);
+        const list = document.getElementById("epList");
+        if (!list) return;
+        list.innerHTML = '<div class="ep-loading"><div class="detail-spinner"></div></div>';
+        try {
+          const data = await TMDB.fetch(`/tv/${tvId}/season/${season}`);
+          const progress = State.get("episodeProgress")[tvId] || {};
+          list.innerHTML = (data?.episodes || [])
+            .map((ep) => {
+              const epPct = progress[`s${season}e${ep.episode_number}`] || 0;
+              return `<div class="ep-card ${epPct >= 90 ? "ep-watched" : ""}" data-ep="${ep.episode_number}"
+            onclick="playEpisode(${tvId},${season},${ep.episode_number},this)">
+            <div class="ep-index">${ep.episode_number}</div>
+            <div class="ep-thumb" style="${ep.still_path ? `background-image:url('${CONFIG.IMG_BASE}/w300${ep.still_path}')` : ""};background-color:#222;background-size:cover;">
+               <div class="ep-play-overlay"><svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+               ${epPct > 0 && epPct < 90 ? `<div class="ep-progress-bar"><div style="width:${epPct}%"></div></div>` : ""}
+               ${epPct >= 90 ? '<div class="ep-watched-badge"><i class="fas fa-check"></i></div>' : ""}
+            </div>
+            <div class="ep-info">
+               <div class="ep-name">${esc(ep.name || `Episode ${ep.episode_number}`)}</div>
+               ${ep.air_date ? `<div class="ep-airdate">${fmtDate(ep.air_date)}</div>` : ""}
+               <p class="ep-synopsis">${esc((ep.overview || "").slice(0, 160))}${ep.overview?.length > 160 ? "…" : ""}</p>
+            </div>
+         </div>`;
+            })
+            .join("");
+        } catch {
+          list.innerHTML = '<p class="ep-error">Failed to load episodes.</p>';
+        }
+      }
+
+      function playEpisode(tvId, season, episode, btn) {
+        State.set("currentSeason", season);
+        State.set("currentEpisode", episode);
+        document.querySelectorAll(".ep-card").forEach((c) => c.classList.remove("ep-active"));
+        if (btn) btn.classList.add("ep-active");
+        startPlaying();
+        showToast(`Playing S${season}E${episode}`, "info");
+      }
+
+      function _updateContinueWatching() {
+        const id = State.get("currentId"),
+          type = State.get("currentType");
+        if (!id || AppState.settings.privacyMode) return;
+        const cw = State.get("continueWatching").filter((x) => x.id !== id);
+        const histItem = State.get("watchHistory").find((h) => h.id === id);
+        cw.unshift({
+          id,
+          type,
+          title: histItem?.title || "",
+          poster: histItem?.poster || "",
+          pct: 15,
+          watchedAt: Date.now(),
+        });
+        State.set("continueWatching", cw.slice(0, 20));
+        State.persist();
+      }
+
+      /* ── SEARCH ENGINE v2 — AbortController, trending, recent history ───────────── */
+      const Search = (() => {
+        let _debounce = null,
+          _sugDebounce = null,
+          _abortCtrl = null;
+
+        function open() {
+          State.set("searchOpen", true);
+          document.getElementById("searchWrapper")?.classList.add("open");
+          document.getElementById("searchInput")?.focus();
+          _showRecentSearches();
+        }
+        function close() {
+          State.set("searchOpen", false);
+          document.getElementById("searchWrapper")?.classList.remove("open");
+          const inp = document.getElementById("searchInput");
+          if (inp) inp.value = "";
+          hideSugg();
+        }
+        function toggle() {
+          State.get("searchOpen") ? close() : open();
+        }
+        function hideSugg() {
+          document.getElementById("searchSuggestions")?.classList.remove("active");
+        }
+
+        function _showRecentSearches() {
+          const sug = document.getElementById("searchSuggestions");
+          const recent = AppState.recentSearches;
+          if (!sug || !recent.length) return;
+          sug.innerHTML = `
+         <div class="suggest-section-title">Recent Searches</div>
+         ${recent
+           .slice(0, 5)
+           .map(
+             (q) => `
+            <div class="suggest-item suggest-recent" onclick="Search.triggerFull('${esc(q)}')">
+               <i class="fas fa-history suggest-icon"></i>
+               <span>${esc(q)}</span>
+               <button class="suggest-remove" onclick="event.stopPropagation();Search._removeRecent('${esc(q)}')">✕</button>
+            </div>`,
+           )
+           .join("")}
+         <div class="suggest-footer" onclick="Search._clearRecent()">Clear history</div>`;
+          sug.classList.add("active");
+        }
+
+        function _saveRecentSearch(q) {
+          let recent = AppState.recentSearches.filter((r) => r !== q);
+          recent.unshift(q);
+          AppState.recentSearches = recent.slice(0, 10);
+          SafeStorage.set("bb_recent_searches", AppState.recentSearches);
+        }
+
+        function onKeydown(e) {
+          const q = e.target.value.trim();
+          if (e.key === "Enter" && q) {
+            clearTimeout(_debounce);
+            hideSugg();
+            _saveRecentSearch(q);
+            State.set("searchQuery", q);
+            State.set("searchPage", 1);
+            doSearch();
+            return;
+          }
+          if (e.key === "Escape") {
+            close();
+            return;
+          }
+          if (!q) {
+            hideSugg();
+            if (document.getElementById("pageResults")?.classList.contains("active")) goHome();
+            return;
+          }
+          clearTimeout(_sugDebounce);
+          _sugDebounce = setTimeout(() => loadSugg(q), 250);
+          if (q.length >= 3) {
+            clearTimeout(_debounce);
+            _debounce = setTimeout(() => {
+              State.set("searchQuery", q);
+              State.set("searchPage", 1);
+              doSearch();
+            }, 550);
+          }
+        }
+
+        async function loadSugg(q) {
+          _abortCtrl?.abort();
+          _abortCtrl = new AbortController();
+          const sug = document.getElementById("searchSuggestions");
+          if (!sug) return;
+          const data = await TMDB.fetch("/search/multi", { query: q, page: 1 });
+          if (!data) return;
+          const results = (data.results || [])
+            .filter((r) => (r.media_type === "movie" || r.media_type === "tv") && r.poster_path)
+            .slice(0, 6);
+          if (!results.length) {
+            hideSugg();
+            return;
+          }
+          sug.innerHTML =
+            results
+              .map((r) => {
+                const item = norm(r, r.media_type);
+                return `<div class="suggest-item" onclick="openDetailModal('${item.id}','${item.type}',false);Search.close()">
+            <img class="suggest-poster" src="${item.poster_sm || item.poster}" loading="lazy" alt="">
+            <div class="suggest-info">
+               <p class="suggest-title">${esc(item.title)}</p>
+               <p class="suggest-meta">${item.type.toUpperCase()} • ${item.year || ""} • ★ ${item.rating || "N/A"}</p>
+            </div>
+         </div>`;
+              })
+              .join("") +
+            `<div class="suggest-footer" onclick="Search.triggerFull('${esc(q)}')">See all results for "${esc(q)}"</div>`;
+          sug.classList.add("active");
+        }
+
+        async function doSearch() {
+          const q = State.get("searchQuery");
+          if (!q) return;
+          showResultsPanel(`Results for "<span>${esc(q)}</span>"`);
+          const grid = document.getElementById("searchResultsGrid");
+          if (State.get("searchPage") === 1 && grid)
+            grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+          const data = await TMDB.fetch("/search/multi", { query: q, page: State.get("searchPage") });
+          const results = (data?.results || []).filter((r) => r.media_type === "movie" || r.media_type === "tv");
+          if (!results.length && State.get("searchPage") === 1) {
+            if (grid)
+              grid.innerHTML = `<div class="no-results"><i class="fas fa-search"></i><p>No results for "${esc(q)}"</p><p class="no-results-hint">Try a different spelling or search term.</p></div>`;
+            return;
+          }
+          const cards = results.map((r) => gridCard(norm(r, r.media_type))).join("");
+          if (State.get("searchPage") === 1 && grid) grid.innerHTML = cards;
+          else grid?.insertAdjacentHTML("beforeend", cards);
+          const lmBtn = document.getElementById("loadMoreBtn");
+          if (lmBtn) lmBtn.style.display = data && data.page < data.total_pages ? "flex" : "none";
+        }
+
+        function triggerFull(q) {
+          document.getElementById("searchInput").value = q;
+          State.set("searchQuery", q);
+          State.set("searchPage", 1);
+          _saveRecentSearch(q);
+          hideSugg();
+          doSearch();
+        }
+
+        return {
+          open,
+          close,
+          toggle,
+          onKeydown,
+          doSearch,
+          hideSuggestions: hideSugg,
+          triggerFull,
+          _removeRecent(q) {
+            AppState.recentSearches = AppState.recentSearches.filter((r) => r !== q);
+            SafeStorage.set("bb_recent_searches", AppState.recentSearches);
+            _showRecentSearches();
+          },
+          _clearRecent() {
+            AppState.recentSearches = [];
+            SafeStorage.set("bb_recent_searches", []);
+            hideSugg();
+          },
+        };
+      })();
+      window.Search = Search;
+
+      /* ── GRID CARD ──────────────────────────────────────────────────────────────── */
+      function gridCard(item) {
+        if (!item) return "";
+        const q = qualityLabel(
+          { vote_average: item.rating, vote_count: item.votes, release_date: item.year + "-01-01" },
+          item.type,
+        );
+        return `<article class="grid-card" onclick="openDetailModal('${esc(item.id)}','${item.type}',false)" tabindex="0" role="button" aria-label="${esc(item.title)}">
+      ${
+        item.poster
+          ? `<img src="${item.poster}" loading="lazy" alt="${esc(item.title)}" decoding="async">`
+          : `<div class="grid-card-no-img"><i class="fas fa-film"></i></div>`
+      }
+      <div class="grid-card-body">
+         <p class="grid-card-title">${esc(item.title)}</p>
+         <div class="grid-card-meta">
+            <span class="match">${matchPct(item.rating)}%</span>
+            <span>${item.year || ""}</span>
+            <span class="type-badge">${item.type.toUpperCase()}</span>
+            <span class="media-quality ${q.cls}" style="font-size:.6rem;padding:1px 5px">${q.label}</span>
+         </div>
+      </div>
+   </article>`;
+      }
+
+      function showResultsPanel(title) {
+        document.getElementById("pageHome").style.display = "none";
+        document.getElementById("pageResults")?.classList.add("active");
+        const titleEl = document.getElementById("resultsTitle");
+        if (titleEl) titleEl.innerHTML = title;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        updateActiveNav("");
+      }
+
+      function goHome() {
+        document.getElementById("pageHome").style.display = "";
+        document.getElementById("pageResults")?.classList.remove("active");
+        document.getElementById("searchInput").value = "";
+        State.set("searchQuery", "");
+        State.set("currentCategory", "");
+        State.set("currentGenreId", null);
+        updateActiveNav("nav-home");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* ── CATEGORY / GENRE BROWSE ────────────────────────────────────────────────── */
+      async function showCategory(type, cat) {
+        State.set("currentCategoryType", type);
+        State.set("currentCategory", cat);
+        State.set("currentGenreId", null);
+        State.set("filterPage", 1);
+        showResultsPanel(
+          `${type === "movie" ? "Movies" : "TV Shows"} — ${cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}`,
+        );
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch(`/${type}/${cat}`, { page: 1 });
+        if (!data?.results) {
+          grid.innerHTML = '<p class="no-results">Failed to load</p>';
+          return;
+        }
+        grid.innerHTML = data.results.map((i) => gridCard(norm(i, type))).join("");
+        const lmBtn = document.getElementById("loadMoreBtn");
+        if (lmBtn) lmBtn.style.display = data.page < data.total_pages ? "flex" : "none";
+        updateActiveNav("");
+      }
+
+      async function filterByGenre(gid, gname) {
+        if (!gid) return;
+        State.set("currentGenreId", gid);
+        State.set("currentCategoryType", "movie");
+        State.set("currentCategory", "");
+        State.set("filterPage", 1);
+        showResultsPanel(`<i class="fas fa-film"></i> ${esc(gname)}`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch("/discover/movie", { with_genres: gid, page: 1, sort_by: "popularity.desc" });
+        if (!data?.results) {
+          grid.innerHTML = '<p class="no-results">Failed to load</p>';
+          return;
+        }
+        grid.innerHTML = data.results.map((i) => gridCard(norm(i, "movie"))).join("");
+        const lmBtn = document.getElementById("loadMoreBtn");
+        if (lmBtn) lmBtn.style.display = data.page < data.total_pages ? "flex" : "none";
+      }
+
+      async function loadMore() {
+        if (State.get("isFetchingMore")) return;
+        State.set("isFetchingMore", true);
+        const lmBtn = document.getElementById("loadMoreBtn");
+        if (lmBtn) lmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading…';
+        const q = State.get("searchQuery"),
+          cat = State.get("currentCategory"),
+          gid = State.get("currentGenreId"),
+          type = State.get("currentCategoryType");
+        const page = State.get("filterPage") + 1;
+        State.set("filterPage", page);
+        const grid = document.getElementById("searchResultsGrid");
+        let data;
+        try {
+          if (q) {
+            State.set("searchPage", State.get("searchPage") + 1);
+            data = await TMDB.fetch("/search/multi", { query: q, page: State.get("searchPage") });
+            grid.insertAdjacentHTML(
+              "beforeend",
+              (data?.results || [])
+                .filter((r) => r.media_type === "movie" || r.media_type === "tv")
+                .map((r) => gridCard(norm(r, r.media_type)))
+                .join(""),
+            );
+          } else if (gid) {
+            data = await TMDB.fetch("/discover/movie", { with_genres: gid, page, sort_by: "popularity.desc" });
+            grid.insertAdjacentHTML("beforeend", (data?.results || []).map((i) => gridCard(norm(i, "movie"))).join(""));
+          } else if (cat) {
+            data = await TMDB.fetch(`/${type}/${cat}`, { page });
+            grid.insertAdjacentHTML("beforeend", (data?.results || []).map((i) => gridCard(norm(i, type))).join(""));
+          }
+        } finally {
+          if (lmBtn) {
+            lmBtn.innerHTML = "Load More";
+            lmBtn.style.display = data && data.page < data.total_pages ? "flex" : "none";
+          }
+          State.set("isFetchingMore", false);
+        }
+      }
+
+      function updateActiveNav(id) {
+        document.querySelectorAll(".nav-link").forEach((a) => a.classList.remove("active"));
+        if (id) document.getElementById(id)?.classList.add("active");
+      }
+
+      /* ── WISHLIST & HISTORY v2 ─────────────────────────────────────────────────── */
+      function toggleWishlist(id, type, title, poster, year) {
+        const wishlist = State.get("wishlist");
+        const idx = wishlist.findIndex((w) => w.id === String(id));
+        let added;
+        if (idx > -1) {
+          wishlist.splice(idx, 1);
+          added = false;
+          showToast(`Removed "${title}" from My List`, "info");
+        } else {
+          wishlist.unshift({ id: String(id), type, title, poster, year, addedAt: Date.now(), notes: "" });
+          added = true;
+          showToast(`Added "${title}" to My List`);
+          Achievements.check();
+        }
+        State.set("wishlist", wishlist);
+        State.persist();
+        refreshWishlistUI();
+        /* Update detail modal button */
+        const db = document.getElementById("detailListBtn");
+        if (db && State.get("currentId") === String(id)) {
+          db.classList.toggle("in-list", added);
+          const icon = db.querySelector("i");
+          if (icon) {
+            icon.className = `fas ${added ? "fa-check" : "fa-plus"}`;
+          }
+        }
+        EventBus.emit("wishlist:changed", { id, added });
+      }
+
+      function refreshWishlistUI() {
+        const list = document.getElementById("wishlistItems");
+        const empty = document.getElementById("wishlistEmpty");
+        const wl = State.get("wishlist");
+        if (!list) return;
+        if (!wl.length) {
+          list.innerHTML = "";
+          if (empty) empty.style.display = "block";
+          return;
+        }
+        if (empty) empty.style.display = "none";
+        list.innerHTML = wl
+          .map(
+            (item) => `
+      <div class="wishlist-item" onclick="closeWishlistPanel();openDetailModal('${item.id}','${item.type}',false)">
+         ${item.poster ? `<img class="wishlist-poster" src="${item.poster}" loading="lazy">` : '<div class="wishlist-poster wishlist-poster-empty"><i class="fas fa-film"></i></div>'}
+         <div class="wishlist-info">
+            <p class="wishlist-title">${esc(item.title)}</p>
+            <p class="wishlist-meta">${item.type.toUpperCase()} • ${item.year || ""}</p>
+            <p class="wishlist-added">${relTime(item.addedAt)}</p>
+         </div>
+         <div class="wishlist-actions">
+            <button class="wl-play-btn" onclick="event.stopPropagation();closeWishlistPanel();openDetailModal('${item.id}','${item.type}',true)" aria-label="Play"><i class="fas fa-play"></i></button>
+            <button class="wl-remove-btn" onclick="event.stopPropagation();toggleWishlist('${item.id}','${item.type}','${esc(item.title)}','${item.poster || ""}','${item.year || ""}')" aria-label="Remove"><i class="fas fa-trash"></i></button>
+         </div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      function toggleWishlistPanel() {
+        const p = document.getElementById("wishlistPanel");
+        p?.classList.contains("open") ? closeWishlistPanel() : openWishlistPanel();
+      }
+      function openWishlistPanel() {
+        refreshWishlistUI();
+        document.getElementById("wishlistPanel")?.classList.add("open");
+        refreshHistoryUI();
+      }
+      function closeWishlistPanel() {
+        document.getElementById("wishlistPanel")?.classList.remove("open");
+      }
+
+      function switchPanelTab(tab, btn) {
+        document.querySelectorAll(".panel-tab").forEach((b) => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        document.getElementById("panelWishlist").style.display = tab === "wishlist" ? "" : "none";
+        document.getElementById("panelHistory").style.display = tab === "history" ? "" : "none";
+        if (tab === "history") refreshHistoryUI();
+      }
+
+      function addToHistory(id, type, title, poster, year) {
+        const hist = State.get("watchHistory").filter((h) => h.id !== String(id));
+        hist.unshift({ id: String(id), type, title, poster, year, watchedAt: Date.now() });
+        State.set("watchHistory", hist.slice(0, 150));
+        State.persist();
+        refreshHistoryUI();
+        renderHomeHistory();
+      }
+
+      function refreshHistoryUI() {
+        const list = document.getElementById("historyItems");
+        const hist = State.get("watchHistory");
+        if (!list) return;
+        if (!hist.length) {
+          list.innerHTML = '<p class="history-empty">No watch history yet.</p>';
+          return;
+        }
+        list.innerHTML = hist
+          .slice(0, 30)
+          .map(
+            (item) => `
+      <div class="history-item" onclick="closeWishlistPanel();openDetailModal('${item.id}','${item.type}',false)">
+         ${item.poster ? `<img class="history-poster" src="${item.poster}" loading="lazy">` : ""}
+         <div>
+            <p class="history-title">${esc(item.title)}</p>
+            <p class="history-meta">${item.type.toUpperCase()} • ${relTime(item.watchedAt)}</p>
+         </div>
+         <button class="history-remove-btn" onclick="event.stopPropagation();_removeHistory('${item.id}')" aria-label="Remove"><i class="fas fa-times"></i></button>
+      </div>`,
+          )
+          .join("");
+      }
+
+      function _removeHistory(id) {
+        State.set(
+          "watchHistory",
+          State.get("watchHistory").filter((h) => h.id !== String(id)),
+        );
+        State.persist();
+        refreshHistoryUI();
+        renderHomeHistory();
+      }
+
+      function renderHomeHistory() {
+        const hist = State.get("watchHistory");
+        const sec = document.getElementById("historySection");
+        const row = document.getElementById("homeHistoryRow");
+        if (!sec || !row) return;
+        if (!hist.length) {
+          sec.style.display = "none";
+          return;
+        }
+        sec.style.display = "";
+        row.innerHTML = hist
+          .slice(0, 12)
+          .map(
+            (item) => `
+      <div onclick="openDetailModal('${item.id}','${item.type}',false)" class="home-history-card">
+         ${item.poster ? `<img src="${item.poster}" alt="${esc(item.title)}">` : '<div class="home-history-placeholder"><i class="fas fa-film"></i></div>'}
+         <div class="home-history-overlay"><p>${esc(item.title)}</p></div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      function scrollToHistory() {
+        document.getElementById("historySection")?.scrollIntoView({ behavior: "smooth" });
+      }
+
+      /* ── SHARE MEDIA ────────────────────────────────────────────────────────────── */
+      async function shareMedia(title, id, type) {
+        const url = `${window.location.origin}${window.location.pathname}#${type}/${id}`;
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: `Watch ${title} on BingeBox`, url });
+            return;
+          } catch (_) {}
+        }
+        navigator.clipboard?.writeText(url).then(() => showToast("Link copied to clipboard!", "success"));
+      }
+
+      /* ── STATS TRACKING ─────────────────────────────────────────────────────────── */
+      function _trackStats(type, genres) {
+        const stats = AppState.stats;
+        if (type === "movie") stats.movies++;
+        else stats.episodes++;
+
+        /* Weekly activity heatmap (0=Sun) */
+        const day = new Date().getDay();
+        if (!Array.isArray(stats.weeklyActivity)) stats.weeklyActivity = Array(7).fill(0);
+        stats.weeklyActivity[day] = (stats.weeklyActivity[day] || 0) + 1;
+
+        /* Genre tracking */
+        genres.forEach((g) => {
+          stats.topGenres[g.name] = (stats.topGenres[g.name] || 0) + 1;
+        });
+
+        /* Streak */
+        const today = new Date().toDateString();
+        const last = stats.lastWatchDate;
+        if (last === today) {
+          /* same day — no change */
+        } else if (last === new Date(Date.now() - 86400000).toDateString()) {
+          stats.streak = (stats.streak || 0) + 1;
+          stats.longestStreak = Math.max(stats.longestStreak || 0, stats.streak);
+        } else {
+          stats.streak = 1;
+        }
+        stats.lastWatchDate = today;
+
+        SafeStorage.set("bb_stats", stats);
+        Achievements.check();
+      }
+
+      /* ── ACHIEVEMENTS SYSTEM ────────────────────────────────────────────────────── */
+      const Achievements = {
+        check() {
+          const stats = AppState.stats;
+          const wl = State.get("wishlist");
+          ACHIEVEMENTS_DEF.forEach((def) => {
+            if (AppState.achievements[def.id]) return;
+            try {
+              if (def.req(stats, wl)) {
+                AppState.achievements[def.id] = { unlockedAt: Date.now() };
+                SafeStorage.set("bb_achievements", AppState.achievements);
+                this._notify(def);
+              }
+            } catch (_) {}
+          });
+        },
+
+        _notify(def) {
+          const rarityColors = {
+            common: "#9ca3af",
+            uncommon: "#22c55e",
+            rare: "#3b82f6",
+            epic: "#a855f7",
+            legendary: "#f59e0b",
+          };
+          const color = rarityColors[def.rarity] || "#fff";
+          const t = document.getElementById("toast");
+          if (!t) return;
+          t.className = "toast show achievement-toast";
+          t.style.borderColor = color;
+          t.innerHTML = `<span class="achievement-icon">${def.icon}</span><div><strong>Achievement Unlocked!</strong><br><span style="color:${color}">${def.name}</span> — ${def.desc}</div>`;
+          clearTimeout(t._timer);
+          t._timer = setTimeout(() => t.classList.remove("show"), 5000);
+          vibrate("heavy");
+        },
+
+        getAll() {
+          return ACHIEVEMENTS_DEF.map((def) => ({
+            ...def,
+            unlocked: !!AppState.achievements[def.id],
+            unlockedAt: AppState.achievements[def.id]?.unlockedAt || null,
+          }));
+        },
+
+        renderPanel() {
+          const container = document.getElementById("achievementsGrid");
+          if (!container) return;
+          const all = this.getAll();
+          const rarityOrder = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
+          all.sort((a, b) =>
+            a.unlocked === b.unlocked ? rarityOrder[a.rarity] - rarityOrder[b.rarity] : a.unlocked ? -1 : 1,
+          );
+          container.innerHTML = all
+            .map(
+              (a) => `
+         <div class="achievement-card ${a.unlocked ? "unlocked" : "locked"} rarity-${a.rarity}">
+            <div class="achievement-icon-wrap">${a.icon}</div>
+            <div class="achievement-info">
+               <p class="achievement-name">${a.unlocked ? a.name : "???"}</p>
+               <p class="achievement-desc">${a.unlocked ? a.desc : "Keep watching to unlock"}</p>
+               <span class="achievement-rarity">${a.rarity}</span>
+            </div>
+            ${a.unlocked ? `<div class="achievement-check"><i class="fas fa-check-circle"></i></div>` : '<div class="achievement-lock"><i class="fas fa-lock"></i></div>'}
+         </div>`,
+            )
+            .join("");
+        },
+      };
+
+      /* ── SETTINGS ENGINE v2 ─────────────────────────────────────────────────────── */
+      function openSettings(tab = "appearance") {
+        const modal = document.getElementById("settingsModal");
+        if (!modal) return;
+        refreshSettingsUI();
+        switchSettingsTab(
+          tab,
+          document.querySelector(`.set-tab-btn[data-tab="${tab}"]`) || document.querySelector(".set-tab-btn"),
+        );
+        modal.classList.add("active");
+      }
+      function closeSettings() {
+        document.getElementById("settingsModal")?.classList.remove("active");
+      }
+
+      function switchSettingsTab(tab, btn) {
+        document.querySelectorAll(".set-tab").forEach((el) => el.classList.remove("active"));
+        document.querySelectorAll(".set-tab-btn").forEach((el) => el.classList.remove("active"));
+        document.getElementById(`set-tab-${tab}`)?.classList.add("active");
+        if (btn) btn.classList.add("active");
+        if (tab === "data") renderStatsChart();
+        if (tab === "achievements") Achievements.renderPanel();
+      }
+
+      function refreshSettingsUI() {
+        const s = AppState.settings;
+        [
+          "ambientGlow",
+          "cinemaDim",
+          "privacyMode",
+          "bandwidthSaver",
+          "autoPlayNext",
+          "showCastSection",
+          "reducedMotion",
+          "notificationsEnabled",
+          "autoTheme",
+        ].forEach((k) => document.getElementById(`tog-${k}`)?.classList.toggle("on", !!s[k]));
+        document
+          .querySelectorAll(".theme-btn")
+          .forEach((btn) => btn.classList.toggle("active", btn.dataset.theme === s.theme));
+        const hapticEl = document.getElementById("set-haptic");
+        if (hapticEl) hapticEl.value = s.hapticIntensity || 50;
+        const srvEl = document.getElementById("set-server");
+        if (srvEl)
+          srvEl.innerHTML = SERVERS.map(
+            (srv, i) =>
+              `<option value="${i}" ${State.get("currentServer") === i ? "selected" : ""}>${srv.badge} ${srv.name}</option>`,
+          ).join("");
+        /* Stats summary */
+        const stats = AppState.stats;
+        const summaryEl = document.getElementById("statsSummaryText");
+        if (summaryEl)
+          summaryEl.innerHTML = `<strong>${stats.movies}</strong> movies • <strong>${stats.episodes}</strong> episodes • <strong>${(stats.hoursWatched || 0).toFixed(1)}h</strong> watched • <strong>${stats.streak || 0}</strong> day streak`;
+      }
+
+      function toggleSetting(key) {
+        AppState.settings[key] = !AppState.settings[key];
+        document.getElementById(`tog-${key}`)?.classList.toggle("on", AppState.settings[key]);
+        if (key === "reducedMotion")
+          document.documentElement.classList.toggle("reduced-motion", AppState.settings[key]);
+      }
+
+      function applyTheme(theme, btn) {
+        document.documentElement.setAttribute("data-theme", theme);
+        AppState.settings.theme = theme;
+        document.querySelectorAll(".theme-btn").forEach((b) => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        showToast(`Theme: ${theme.toUpperCase()}`);
+      }
+
+      function testHaptic() {
+        AppState.settings.hapticIntensity = parseInt(document.getElementById("set-haptic")?.value || 50);
+        vibrate("heavy");
+        showToast(`Haptic: ${AppState.settings.hapticIntensity}%`, "info");
+      }
+
+      function saveSettings() {
+        const srvEl = document.getElementById("set-server");
+        if (srvEl) State.set("currentServer", parseInt(srvEl.value));
+        const tkEl = document.getElementById("set-tmdb");
+        if (tkEl?.value.trim()) {
+          const _k = tkEl.value.trim();
+          /* Validate the key before saving */
+          showToast("Validating TMDB key…", "info");
+          fetch("/api/tmdb/validate-key", { headers: { "X-Tmdb-Key": _k } })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.valid) {
+                CONFIG.TMDB_KEY = _k;
+                AppState.settings.tmdbKey = _k;
+                SafeStorage.set("bb_tmdb_key", _k);
+                TMDB.clearCache();
+                showToast("✅ TMDB key valid & saved!", "success", 4000);
+              } else {
+                showToast("❌ Invalid TMDB key: " + (d.error || "check your key"), "error", 5000);
+              }
+            })
+            .catch(() => {
+              /* Offline / standalone — just save without validation */
+              CONFIG.TMDB_KEY = _k;
+              AppState.settings.tmdbKey = _k;
+              SafeStorage.set("bb_tmdb_key", _k);
+              TMDB.clearCache();
+              showToast("TMDB key saved (validation skipped — offline)", "info");
+            });
+        } else if (tkEl && !tkEl.value.trim()) {
+          /* Clear custom key */
+          CONFIG.TMDB_KEY = SafeStorage.get("bb_tmdb_key") || "15d2ea6d0dc1d476efbca3eba2b9bbfb";
+          AppState.settings.tmdbKey = null;
+          SafeStorage.remove("bb_tmdb_key");
+          TMDB.clearCache();
+          showToast("Custom TMDB key cleared — using server key", "info");
+        }
+        if (AppState.settings.autoTheme) _autoTheme();
+        SafeStorage.set("bb_settings", AppState.settings);
+        closeSettings();
+        showToast("Settings saved.", "success");
+      }
+
+      function _autoTheme() {
+        const h = new Date().getHours();
+        const theme = h >= 6 && h < 20 ? "netflix" : "midnight";
+        applyTheme(theme, null);
+      }
+
+      function renderStatsChart() {
+        setTimeout(() => {
+          const ctx = document.getElementById("statsChart");
+          if (!ctx || !window.Chart) return;
+          if (window._statsChart) window._statsChart.destroy();
+          const stats = AppState.stats;
+          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          const weekly = Array.isArray(stats.weeklyActivity) ? stats.weeklyActivity : Array(7).fill(0);
+          window._statsChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: days,
+              datasets: [
+                {
+                  label: "Activity",
+                  data: weekly,
+                  backgroundColor: weekly.map((_, i) =>
+                    i === new Date().getDay() ? "rgba(229,9,20,.85)" : "rgba(255,255,255,.15)",
+                  ),
+                  borderColor: weekly.map((_, i) => (i === new Date().getDay() ? "#E50914" : "rgba(255,255,255,.3)")),
+                  borderWidth: 1,
+                  borderRadius: 6,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(255,255,255,.05)" },
+                  ticks: { color: "#888", stepSize: 1 },
+                },
+                x: { grid: { display: false }, ticks: { color: "#888" } },
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} watch${ctx.raw !== 1 ? "es" : ""}` } },
+              },
+            },
+          });
+
+          /* Genre donut chart if data exists */
+          const gCtx = document.getElementById("genreChart");
+          if (gCtx && Object.keys(stats.topGenres || {}).length) {
+            if (window._genreChart) window._genreChart.destroy();
+            const genres = Object.entries(stats.topGenres)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 6);
+            const palette = ["#E50914", "#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#06b6d4"];
+            window._genreChart = new Chart(gCtx, {
+              type: "doughnut",
+              data: {
+                labels: genres.map((g) => g[0]),
+                datasets: [{ data: genres.map((g) => g[1]), backgroundColor: palette, borderWidth: 0 }],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: "right", labels: { color: "#ccc", font: { size: 11 } } } },
+              },
+            });
+          }
+        }, 80);
+      }
+
+      function exportData() {
+        SafeStorage.export();
+      }
+      function importData(file) {
+        SafeStorage.import(file);
+      }
+      function clearAllData() {
+        if (!confirm("Clear ALL watch history, lists, stats, and settings? This is permanent.")) return;
+        [
+          "bb_lib",
+          "bb_stats",
+          "bb_wishlist",
+          "bb_history",
+          "bb_achievements",
+          "bb_ep_progress",
+          "bb_continue",
+          "bb_notifs",
+          "bb_recent_searches",
+        ].forEach((k) => localStorage.removeItem(k));
+        showToast("All data cleared. Reloading…", "warning");
+        setTimeout(() => location.reload(), 1500);
+      }
+
+      /* ── CONTEXT MENU ───────────────────────────────────────────────────────────── */
+      function showContextMenu(e, id, type, data) {
+        e.preventDefault();
+        vibrate("light");
+        const cm = document.getElementById("context-menu");
+        if (!cm) return;
+        cm.style.display = "block";
+        cm.style.left = `${Math.min(e.pageX, window.innerWidth - 240)}px`;
+        cm.style.top = `${Math.min(e.pageY, window.innerHeight - 220)}px`;
+        const item = (() => {
+          try {
+            return JSON.parse(decodeURIComponent(data));
+          } catch {
+            return {};
+          }
+        })();
+        const title = item.title || item.name || "";
+        const poster = item.poster_path ? `${CONFIG.IMG_W500}${item.poster_path}` : "";
+        const year = (item.release_date || item.first_air_date || "").slice(0, 4);
+        cm.querySelector("#cm-play")?.addEventListener(
+          "click",
+          () => {
+            cm.style.display = "none";
+            openDetailModal(id, type, true);
+          },
+          { once: true },
+        );
+        cm.querySelector("#cm-watchlist")?.addEventListener(
+          "click",
+          () => {
+            cm.style.display = "none";
+            toggleWishlist(id, type, title, poster, year);
+          },
+          { once: true },
+        );
+        cm.querySelector("#cm-share")?.addEventListener(
+          "click",
+          () => {
+            cm.style.display = "none";
+            shareMedia(title, id, type);
+          },
+          { once: true },
+        );
+        cm.querySelector("#cm-info")?.addEventListener(
+          "click",
+          () => {
+            cm.style.display = "none";
+            openDetailModal(id, type, false);
+          },
+          { once: true },
+        );
+      }
+
+      /* ── GENRE PILLS ────────────────────────────────────────────────────────────── */
+      function buildGenrePills() {
+        const genres = [
+          { id: 28, name: "Action" },
+          { id: 35, name: "Comedy" },
+          { id: 27, name: "Horror" },
+          { id: 878, name: "Sci-Fi" },
+          { id: 10749, name: "Romance" },
+          { id: 53, name: "Thriller" },
+          { id: 16, name: "Animation" },
+          { id: 99, name: "Documentary" },
+          { id: 18, name: "Drama" },
+          { id: 10765, name: "Fantasy" },
+          { id: 9648, name: "Mystery" },
+          { id: 80, name: "Crime" },
+          { id: 36, name: "History" },
+          { id: 10752, name: "War" },
+          { id: 37, name: "Western" },
+          { id: 12, name: "Adventure" },
+          { id: 10751, name: "Family" },
+          { id: 14, name: "Fantasy" },
+          { id: 10402, name: "Music" },
+          { id: 10770, name: "TV Movie" },
+          { id: 10768, name: "War & Politics" },
+          { id: 10759, name: "Action & Adventure" },
+          { id: 10762, name: "Kids" },
+          { id: 10763, name: "News" },
+        ];
+        const bar = document.getElementById("genrePillsBar");
+        if (bar)
+          bar.innerHTML = genres
+            .map(
+              (g) =>
+                `<button class="genre-pill-btn" onclick="filterByGenre(${g.id},'${esc(g.name)}')">${esc(g.name)}</button>`,
+            )
+            .join("");
+        const dd = document.getElementById("genreDropdown");
+        if (dd)
+          dd.innerHTML = genres
+            .map(
+              (g) =>
+                `<div class="genre-drop-item" onclick="filterByGenre(${g.id},'${esc(g.name)}')">${esc(g.name)}</div>`,
+            )
+            .join("");
+      }
+
+      /* ── INFINITE SCROLL ─────────────────────────────────────────────────────────── */
+      function setupInfiniteScroll() {
+        const sentinel = document.getElementById("infiniteScrollSentinel");
+        if (!sentinel) return;
+        new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting && State.get("infiniteScrollOn") && !State.get("isFetchingMore")) loadMore();
+          },
+          { rootMargin: "300px" },
+        ).observe(sentinel);
+      }
+
+      function toggleInfiniteScroll() {
+        const on = State.toggle("infiniteScrollOn");
+        const btn = document.getElementById("infiniteScrollBtn");
+        if (btn) {
+          btn.textContent = on ? "⚡ Auto-Load: ON" : "🔄 Auto-Load: OFF";
+          btn.classList.toggle("active", on);
+        }
+        showToast(on ? "Auto-load enabled" : "Auto-load disabled", "info");
+      }
+
+      /* ── VOICE SEARCH ───────────────────────────────────────────────────────────── */
+      function startVoiceSearch() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+          showToast("Voice search not supported in this browser.", "error");
+          return;
+        }
+        const rec = new SR();
+        rec.lang = AppState.settings.language || "en-US";
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        rec.onstart = () => {
+          showToast("🎙️ Listening…", "info");
+          vibrate("medium");
+        };
+        rec.onresult = (e) => {
+          const txt = e.results[0][0].transcript.trim();
+          showToast(`Searching: "${txt}"`, "info");
+          State.set("searchQuery", txt);
+          const inp = document.getElementById("searchInput");
+          if (inp) inp.value = txt;
+          Search.open();
+          Search.doSearch();
+        };
+        rec.onerror = (err) => showToast(`Voice error: ${err.error}`, "error");
+        rec.start();
+      }
+
+      /* ── KONAMI CODE ────────────────────────────────────────────────────────────── */
+      function activateKonami() {
+        AppState._konami = true;
+        document.documentElement.setAttribute("data-theme", "godmode");
+        AppState.settings.theme = "godmode";
+        SafeStorage.set("bb_settings", AppState.settings);
+        showToast("⚡ GOD MODE UNLOCKED — You found the secret!", "success", 5000);
+        vibrate("heavy");
+        Achievements.check();
+        /* Visual burst */
+        const burst = document.createElement("div");
+        burst.id = "konamiBurst";
+        burst.innerHTML = Array.from(
+          { length: 20 },
+          () =>
+            `<div class="konami-particle" style="--dx:${(Math.random() - 0.5) * 400}px;--dy:${(Math.random() - 0.5) * 400}px;--r:${Math.random() * 720}deg"></div>`,
+        ).join("");
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 2000);
+      }
+
+      /* ── KEYBOARD SHORTCUTS ─────────────────────────────────────────────────────── */
+      function showKeyboardShortcuts() {
+        const shortcuts = [
+          { key: "/", action: "Open Search" },
+          { key: "Esc", action: "Close modal / Search" },
+          { key: "F", action: "Toggle Cinema Mode" },
+          { key: "W", action: "Toggle 21:9 Wide Mode" },
+          { key: "P", action: "Pop-out player (new tab)" },
+          { key: "D", action: "Open Download modal" },
+          { key: "M", action: "Toggle My List panel" },
+          { key: "H", action: "Go Home" },
+          { key: "S", action: "Open Settings" },
+          { key: "N", action: "Next episode (in player)" },
+          { key: "ArrowLeft / Right", action: "Hero carousel prev / next" },
+          { key: "?", action: "Show this shortcuts panel" },
+          { key: "↑↑↓↓←→←→BA", action: "🕹️ Konami Code — God Mode" },
+        ];
+        const existing = document.getElementById("shortcutsModal");
+        if (existing) {
+          existing.remove();
+          return;
+        }
+        const modal = document.createElement("div");
+        modal.id = "shortcutsModal";
+        modal.className = "shortcuts-modal";
+        modal.innerHTML = `
+      <div class="shortcuts-box">
+         <div class="shortcuts-header"><h3>⌨️ Keyboard Shortcuts</h3><button onclick="this.closest('#shortcutsModal').remove()"><i class="fas fa-times"></i></button></div>
+         <div class="shortcuts-list">
+            ${shortcuts.map((s) => `<div class="shortcut-row"><kbd>${esc(s.key)}</kbd><span>${esc(s.action)}</span></div>`).join("")}
+         </div>
+      </div>`;
+        modal.onclick = (e) => {
+          if (e.target === modal) modal.remove();
+        };
+        document.body.appendChild(modal);
+      }
+
+      /* ── BOOT SEQUENCE ──────────────────────────────────────────────────────────── */
+      async function init() {
+        /* Apply theme immediately */
+        document.documentElement.setAttribute("data-theme", AppState.settings.theme || "netflix");
+        if (AppState.settings.reducedMotion) document.documentElement.classList.add("reduced-motion");
+        if (AppState.settings.autoTheme) _autoTheme();
+
+        const hideLoader = () => {
+          document.getElementById("loaderOverlay")?.classList.add("hidden");
+        };
+        const failsafe = setTimeout(hideLoader, 10000);
+
+        try {
+          /* Wait for proxy detection to settle (max 3s) before any TMDB call */
+          await _proxyReady;
+
+          /* Boot profile screen */
+          showProfiles();
+
+          /* Parallel load: genres + hero */
+          const [genreMovies, genreTV] = await Promise.all([
+            TMDB.fetch("/genre/movie/list", {}, CONFIG.CACHE_TTL_LONG),
+            TMDB.fetch("/genre/tv/list", {}, CONFIG.CACHE_TTL_LONG),
+          ]);
+          if (genreMovies || genreTV) {
+            [...(genreMovies?.genres || []), ...(genreTV?.genres || [])].forEach((g) => {
+              GENRE_MAP[g.id] = g.name;
+            });
+            buildGenrePills();
+          }
+
+          /* Build UI systems */
+          Hero.load();
+          Rows.buildAll();
+          refreshWishlistUI();
+          refreshHistoryUI();
+          renderHomeHistory();
+          setupInfiniteScroll();
+          Navbar.init();
+          PartyEngine.renderReactionBar?.();
+          Achievements.check();
+
+          /* Start FPS counter if enabled */
+          if (AppState.settings.showFPS) FPS.start();
+
+          /* Keyboard listeners */
+          document.addEventListener("keydown", (e) => {
+            /* Konami */
+            if (e.key === AppState.konamiCode[AppState.konamiIndex]) {
+              AppState.konamiIndex++;
+              if (AppState.konamiIndex === AppState.konamiCode.length) {
+                activateKonami();
+                AppState.konamiIndex = 0;
+              }
+            } else {
+              AppState.konamiIndex = 0;
+            }
+
+            /* Skip shortcuts inside text inputs */
+            const tag = document.activeElement?.tagName;
+            const inInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+            if (!inInput) {
+              if (e.key === "/") {
+                e.preventDefault();
+                Search.open();
+              }
+              if (e.key === "f" || e.key === "F") {
+                if (document.getElementById("playerSection")?.style.display !== "none") goFullscreen();
+              }
+              if (e.key === "w" || e.key === "W") {
+                if (document.getElementById("playerSection")?.style.display !== "none") toggleWideMode();
+              }
+              if (e.key === "d" || e.key === "D") {
+                const ci = State.get("currentId");
+                if (ci) openDownloadModal(ci, State.get("currentType"), "");
+              }
+              if (e.key === "p" || e.key === "P") {
+                if (document.getElementById("playerSection")?.style.display !== "none") popOutPlayer();
+              }
+              if (e.key === "m" || e.key === "M") toggleWishlistPanel();
+              if (e.key === "h" || e.key === "H") goHome();
+              if (e.key === "s" || e.key === "S") openSettings();
+              if (e.key === "n" || e.key === "N") {
+                if (State.get("currentType") === "tv") nextEpisode();
+              }
+              if (e.key === "?") showKeyboardShortcuts();
+              if (e.key === "ArrowLeft") {
+                Hero.prev();
+                Hero.restartCycle();
+              }
+              if (e.key === "ArrowRight") {
+                Hero.next();
+                Hero.restartCycle();
+              }
+            }
+            if (e.key === "Escape") {
+              closeDetailModal();
+              closeSettings();
+              closeWishlistPanel();
+              Search.close();
+              const _pm = document.getElementById("partyModal");
+              if (_pm) _pm.style.display = "none";
+              const _spd = document.getElementById("serverPickerDropdown");
+              if (_spd) _spd.style.display = "none";
+              document.getElementById("shortcutsModal")?.remove();
+            }
+          });
+
+          /* Back button handling */
+          window.addEventListener("popstate", (e) => {
+            if (!e.state || e.state.view !== "modal") closeDetailModal();
+          });
+
+          /* Deep-link handler: #type/id */
+          const hash = window.location.hash.slice(1);
+          if (/^(movie|tv)\/\d+$/.test(hash)) {
+            const [type, id] = hash.split("/");
+            EventBus.once("profile:selected", () => openDetailModal(id, type, false));
+          }
+
+          /* Periodic streak check */
+          setInterval(Achievements.check.bind(Achievements), 60000);
+        } catch (err) {
+          console.error("[BingeBox] Init error:", err);
+        } finally {
+          clearTimeout(failsafe);
+          hideLoader();
+        }
+      }
+
+      /* ── GLOBAL FUNCTION EXPORTS ────────────────────────────────────────────────── */
+
+      /* ── DOWNLOAD MODAL ─────────────────────────────────────────────────────────
+   Uses dl.vidsrc.vip as the download source (extracted from main_js)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function openDownloadModal(id, type, title) {
+        AppState._downloaded = true;
+        if (AppState.stats) {
+          AppState.stats.downloads = (AppState.stats.downloads || 0) + 1;
+          SafeStorage.set("bb_stats", AppState.stats);
+        }
+        Achievements.check();
+        const overlay = document.getElementById("downloadOverlay");
+        const iframe = document.getElementById("dlIframe");
+        const titleEl = document.getElementById("dlTitle");
+        if (!overlay) return;
+        if (titleEl) titleEl.textContent = title ? `— ${title}` : "";
+        if (iframe) {
+          const s = State.get("currentSeason") || 1;
+          const e = State.get("currentEpisode") || 1;
+          iframe.src = type === "movie" ? `${CONFIG.DL_EMBED}/movie/${id}` : `${CONFIG.DL_EMBED}/tv/${id}/${s}/${e}`;
+        }
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        showToast(`Opening download for "${title}"…`, "info");
+      }
+
+      function closeDownloadModal() {
+        const overlay = document.getElementById("downloadOverlay");
+        if (!overlay) return;
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        const iframe = document.getElementById("dlIframe");
+        if (iframe) iframe.src = "";
+      }
+
+      /* ── POP OUT PLAYER ──────────────────────────────────────────────────────────
+   Opens the current embed URL in a new tab (extracted from main_js)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function popOutPlayer() {
+        const url = getEmbedUrl();
+        if (!url) {
+          showToast("Start playing first", "info");
+          return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+        showToast("Opened in new tab", "success");
+      }
+
+      /* ── WIDE / ULTRA-WIDE MODE (21:9) ──────────────────────────────────────────
+   Toggles the player between 16:9 and 21:9 aspect ratio
+   ─────────────────────────────────────────────────────────────────────────── */
+      function toggleWideMode() {
+        AppState._usedWide = true;
+        Achievements.check();
+        const box = document.getElementById("playerBox");
+        const btn = document.getElementById("wideBtn");
+        if (!box) return;
+        const entering = !box.classList.contains("wide-mode");
+        box.classList.toggle("wide-mode", entering);
+        if (btn) {
+          btn.classList.toggle("active", entering);
+          btn.innerHTML = entering
+            ? '<i class="fas fa-compress-arrows-alt"></i> 16:9'
+            : '<i class="fas fa-arrows-alt-h"></i> Wide';
+          btn.title = entering ? "Switch to 16:9" : "Toggle 21:9 wide mode";
+        }
+        showToast(entering ? "Ultra-Wide 21:9 mode" : "Standard 16:9 mode", "info");
+      }
+
+      /* ── SEARCH BY CAST ──────────────────────────────────────────────────────────
+   Triggers a search for a cast member's name (from main_js / index16)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function searchByCast(name) {
+        if (!name) return;
+        if (AppState.stats) {
+          AppState.stats.castSearches = (AppState.stats.castSearches || 0) + 1;
+          SafeStorage.set("bb_stats", AppState.stats);
+        }
+        Achievements.check();
+        closeDetailModal();
+        const input = document.getElementById("searchInput");
+        if (input) input.value = name;
+        State.set("searchQuery", name);
+        State.set("searchPage", 1);
+        Search.open();
+        Search.doSearch();
+        showToast(`Searching for "${name}"`, "info");
+      }
+
+      /* ── FPS COUNTER ─────────────────────────────────────────────────────────────
+   Live frames-per-second overlay (from index14)
+   ─────────────────────────────────────────────────────────────────────────── */
+      const FPS = (() => {
+        let _raf = null,
+          _frames = 0,
+          _last = 0,
+          _running = false;
+        function _tick(ts) {
+          _frames++;
+          if (ts - _last >= 1000) {
+            const badge = document.getElementById("fpsBadge");
+            if (badge) badge.textContent = `${_frames} FPS`;
+            _frames = 0;
+            _last = ts;
+          }
+          if (_running) _raf = requestAnimationFrame(_tick);
+        }
+        return {
+          start() {
+            if (_running) return;
+            _running = true;
+            _last = performance.now();
+            _frames = 0;
+            const badge = document.getElementById("fpsBadge");
+            if (badge) badge.classList.add("visible");
+            _raf = requestAnimationFrame(_tick);
+          },
+          stop() {
+            _running = false;
+            if (_raf) {
+              cancelAnimationFrame(_raf);
+              _raf = null;
+            }
+            const badge = document.getElementById("fpsBadge");
+            if (badge) badge.classList.remove("visible");
+          },
+          toggle() {
+            _running ? this.stop() : this.start();
+          },
+        };
+      })();
+
+      /* ── VH FIX (mobile safe area) ──────────────────────────────────────────────
+   Sets --vh CSS var to actual viewport height (from main_js)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function setVhVar() {
+        document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
+      }
+      setVhVar();
+      window.addEventListener("resize", debounce(setVhVar, 150), { passive: true });
+
+      /* ── ENHANCED toggleSetting — handle new flags ───────────────────────────── */
+      const _origToggleSetting = typeof toggleSetting === "function" ? toggleSetting : null;
+      function toggleSetting(key) {
+        AppState.settings[key] = !AppState.settings[key];
+        const on = AppState.settings[key];
+        document.getElementById(`tog-${key}`)?.classList.toggle("on", on);
+        SafeStorage.set("bb_settings", AppState.settings);
+        if (key === "reducedMotion") {
+          document.documentElement.classList.toggle("reduced-motion", on);
+          showToast(`Reduced motion ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "showFPS") {
+          on ? FPS.start() : FPS.stop();
+          showToast(`FPS counter ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "autoTheme") {
+          if (on) _autoTheme();
+          showToast(`Auto theme ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "ambientMode") {
+          const ov = document.getElementById("ambientOverlay");
+          if (ov) ov.style.opacity = on ? "0.06" : "0";
+          showToast(`Ambient mode ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "theaterMode") {
+          document.body.classList.toggle("theater-mode", on);
+          showToast(`Theater mode ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "compactMode") {
+          document.documentElement.classList.toggle("compact", on);
+          showToast(`Compact mode ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "autoSkipIntro") {
+          showToast(`Auto-skip intro ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "smartRecommend") {
+          showToast(`Smart recommendations ${on ? "ON" : "OFF"}`, "info");
+        }
+        if (key === "cardHoverPreview") {
+          showToast(`Hover preview ${on ? "ON" : "OFF"}`, "info");
+        }
+      }
+
+      /* ── ENHANCED applyTheme — also save to AppState ─────────────────────────── */
+      function applyTheme(theme, btn) {
+        document.documentElement.setAttribute("data-theme", theme);
+        AppState.settings.theme = theme;
+        document.querySelectorAll(".theme-btn").forEach((b) => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        else document.querySelector(`.theme-btn[data-theme="${theme}"]`)?.classList.add("active");
+        SafeStorage.set("bb_settings", AppState.settings);
+        const themeColors = {
+          netflix: "#04040a",
+          midnight: "#020308",
+          warm: "#0c0600",
+          teal: "#000c0f",
+          hulu: "#080c0a",
+          max: "#020018",
+          prime: "#000610",
+          rose: "#0d0208",
+          cyber: "#00080c",
+          aurora: "#030010",
+          obsidian: "#000",
+          godmode: "#000",
+        };
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColors[theme] || "#04040a");
+        EventBus.emit("theme:changed", { theme });
+        showToast(`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`, "info");
+      }
+
+      /* ── ENHANCED refreshSettingsUI — handles new toggles ────────────────────── */
+      function refreshSettingsUI() {
+        const s = AppState.settings;
+        [
+          "ambientGlow",
+          "cinemaDim",
+          "privacyMode",
+          "bandwidthSaver",
+          "autoPlayNext",
+          "showCastSection",
+          "reducedMotion",
+          "notificationsEnabled",
+          "autoTheme",
+          "showFPS",
+        ].forEach((k) => document.getElementById(`tog-${k}`)?.classList.toggle("on", !!s[k]));
+        document
+          .querySelectorAll(".theme-btn")
+          .forEach((btn) => btn.classList.toggle("active", btn.dataset.theme === s.theme));
+        const hapticEl = document.getElementById("set-haptic");
+        if (hapticEl) hapticEl.value = s.hapticIntensity || 50;
+        const srvEl = document.getElementById("set-server");
+        if (srvEl)
+          srvEl.innerHTML = SERVERS.map(
+            (srv, i) =>
+              `<option value="${i}" ${State.get("currentServer") === i ? "selected" : ""}>${srv.badge} ${srv.name}</option>`,
+          ).join("");
+        const stats = AppState.stats;
+        const summaryEl = document.getElementById("statsSummaryText");
+        if (summaryEl)
+          summaryEl.innerHTML = `<strong>${stats.movies}</strong> movies &bull; <strong>${stats.episodes}</strong> episodes &bull; <strong>${(stats.hoursWatched || 0).toFixed(1)}h</strong> watched &bull; <strong>${stats.streak || 0}</strong> day streak`;
+      }
+
+      function validateTMDBKey() {
+        const key = document.getElementById("set-tmdb")?.value.trim();
+        if (!key) {
+          showToast("Enter a TMDB API key first", "info");
+          return;
+        }
+        const statusEl = document.getElementById("tmdbKeyStatus");
+        if (statusEl) {
+          statusEl.style.display = "inline-block";
+          statusEl.className = "key-status";
+          statusEl.textContent = "⏳ Validating…";
+        }
+        fetch("/api/tmdb/validate-key", { headers: { "X-Tmdb-Key": key } })
+          .then((r) => r.json())
+          .then((d) => {
+            if (statusEl) {
+              statusEl.className = `key-status ${d.valid ? "ok" : "err"}`;
+              statusEl.textContent = d.valid ? "✅ Valid key!" : `❌ ${d.error}`;
+            }
+          })
+          .catch(() => {
+            /* Standalone: test directly */
+            fetch(`https://api.themoviedb.org/3/configuration?api_key=${key}`)
+              .then((r) => {
+                if (statusEl) {
+                  statusEl.className = `key-status ${r.ok ? "ok" : "err"}`;
+                  statusEl.textContent = r.ok ? "✅ Valid key!" : "❌ Invalid key";
+                }
+              })
+              .catch(() => {
+                if (statusEl) {
+                  statusEl.className = "key-status";
+                  statusEl.textContent = "Could not validate (offline?)";
+                }
+              });
+          });
+      }
+      window.validateTMDBKey = validateTMDBKey;
+
+      /* ── COMPACT + THEATER MODE CSS ─────────────────────────────────── */
+      (function () {
+        const s = document.createElement("style");
+        s.textContent = `
+    .compact .card{width:clamp(100px,12vw,148px)!important}
+    .compact .row-track{gap:7px}
+    .compact .content-row{padding:16px 0 2px}
+    .theater-mode #contentRows,.theater-mode #historySection,.theater-mode .genre-pills-section,.theater-mode #siteFooter{display:none!important}
+    .theater-mode #pageHome{padding-top:0}
+    #scrollProgress{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:99999;transform-origin:left;transform:scaleX(0);pointer-events:none;transition:transform .1s linear}
+  `;
+        document.head.appendChild(s);
+        // Scroll progress bar
+        const bar = document.createElement("div");
+        bar.id = "scrollProgress";
+        document.body.appendChild(bar);
+        window.addEventListener(
+          "scroll",
+          () => {
+            const d = document.documentElement;
+            bar.style.transform = `scaleX(${d.scrollTop / (d.scrollHeight - d.clientHeight) || 0})`;
+          },
+          { passive: true },
+        );
+      })();
+
+      Object.assign(window, {
+        /* — Core navigation & modals — */
+        openDetailModal,
+        closeDetailModal,
+        startPlaying,
+        switchServer,
+        switchServerTo,
+        openServerPicker,
+        loadEpisodes,
+        playEpisode,
+        nextEpisode,
+        goFullscreen,
+        /* — Download & player extras (new in v4) — */
+        openDownloadModal,
+        closeDownloadModal,
+        popOutPlayer,
+        toggleWideMode,
+        /* — Wishlist & history — */
+        toggleWishlist,
+        toggleWishlistPanel,
+        openWishlistPanel,
+        closeWishlistPanel,
+        switchPanelTab,
+        /* — Browse & search — */
+        showCategory,
+        filterByGenre,
+        goHome,
+        loadMore,
+        toggleInfiniteScroll,
+        searchByCast,
+        /* — UI utilities — */
+        showToast,
+        updateActiveNav,
+        showContextMenu,
+        buildGenrePills,
+        setVhVar,
+        /* — Settings — */
+        openSettings,
+        closeSettings,
+        switchSettingsTab,
+        toggleSetting,
+        applyTheme,
+        saveSettings,
+        exportData,
+        importData,
+        clearAllData,
+        testHaptic,
+        refreshSettingsUI,
+        /* — Profiles — */
+        showProfiles,
+        selectProfile,
+        promptAddProfile,
+        /* — Misc — */
+        startVoiceSearch,
+        activateKonami,
+        scrollToHistory,
+        shareMedia,
+        shareMediaEnhanced,
+        showKeyboardShortcuts,
+        _exitCinema,
+        _removeHistory,
+        _autoTheme,
+        /* Player extras */
+        randomMovie,
+        saveWallpaper,
+        sortGrid,
+        toggleWideMode,
+        popOutPlayer,
+        openDownloadModal,
+        closeDownloadModal,
+        toggleSubtitleNote,
+        toggleLetterbox,
+        /* Discovery */
+        getPersonalRecommendations,
+        browseByMood,
+        browseByDecade,
+        browseCollection,
+        openPersonPage,
+        browseDirector,
+        exportHistoryCSV,
+        searchByCast,
+        setLanguage,
+        toggleAdultContent,
+        /* Settings helpers */
+        validateTMDBKey,
+        refreshSettingsUI,
+        setVhVar,
+        showResultsPanel,
+        /* Feature objects */
+        FPS,
+        SleepTimer,
+        Ratings,
+        Playlists,
+        CastHistory,
+        TrendingSearches,
+        AmbientMode,
+        RatingFilter,
+        HoverPreview,
+        ImagePreloader,
+        Filters,
+        Notes,
+        NetSpeed,
+        Prefetch,
+        AutoplayCountdown,
+        /* Engine objects */
+        PartyEngine,
+        Navbar,
+        Hero,
+        Rows,
+        Search,
+        Achievements,
+        TMDB,
+        EventBus,
+        State,
+        AppState,
+        /* About helpers */
+        _downloadServerJs,
+        _downloadPackageJson,
+        _refreshServerStatus,
+      });
+
+      /* ── LAUNCH ─────────────────────────────────────────────────────────────────── */
+      init();
+    </script>
+
+    <!-- Legacy features (25-feature block) -->
+    <script>
+      /* ═══════════════════════════════════════════════════════════════════════════
+   BINGEBOX OMEGA v5.0 — 25 NEW FEATURES ENGINE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 1: Cursor Glow (mouse follows with radial accent gradient)
+   ─────────────────────────────────────────────────────────────────────────── */
+      (function initCursorGlow() {
+        const el = document.getElementById("cursorGlow");
+        if (!el || window.matchMedia("(pointer:coarse)").matches) return;
+        let ax = 0,
+          ay = 0,
+          tx = 0,
+          ty = 0;
+        window.addEventListener(
+          "mousemove",
+          (e) => {
+            tx = e.clientX;
+            ty = e.clientY;
+          },
+          { passive: true },
+        );
+        (function raf() {
+          ax += (tx - ax) * 0.08;
+          ay += (ty - ay) * 0.08;
+          el.style.left = ax + "px";
+          el.style.top = ay + "px";
+          requestAnimationFrame(raf);
+        })();
+      })();
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 2: Sleep Timer — auto-pauses player after N minutes
+   ─────────────────────────────────────────────────────────────────────────── */
+      const SleepTimer = (() => {
+        let _timer = null,
+          _remaining = 0,
+          _interval = null;
+        function _tick() {
+          _remaining -= 1000;
+          const badge = document.getElementById("sleepTimerBadge");
+          if (badge) {
+            const m = Math.floor(_remaining / 60000);
+            const s = Math.floor((_remaining % 60000) / 1000);
+            badge.innerHTML = `<i class="fas fa-moon"></i> Sleep: ${m}:${s.toString().padStart(2, "0")}`;
+          }
+          if (_remaining <= 0) stop(true);
+        }
+        function set(minutes) {
+          stop();
+          _remaining = minutes * 60000;
+          _interval = setInterval(_tick, 1000);
+          const badge = document.getElementById("sleepTimerBadge");
+          if (badge) badge.classList.add("visible");
+          showToast(`Sleep timer set for ${minutes} minutes`, "info");
+          Achievements.check();
+        }
+        function stop(trigger = false) {
+          clearInterval(_interval);
+          clearTimeout(_timer);
+          _interval = null;
+          _remaining = 0;
+          const badge = document.getElementById("sleepTimerBadge");
+          if (badge) badge.classList.remove("visible");
+          if (trigger) {
+            const iframe = document.getElementById("streamPlayer");
+            if (iframe) iframe.src = iframe.src; // reload to pause
+            showToast("Sleep timer ended — player paused", "info");
+            AppState._usedSleepTimer = true;
+          }
+        }
+        function cancel() {
+          stop();
+          showToast("Sleep timer cancelled", "info");
+        }
+        function showMenu() {
+          const ex = document.getElementById("sleepTimerMenu");
+          if (ex) {
+            ex.remove();
+            return;
+          }
+          const m = document.createElement("div");
+          m.id = "sleepTimerMenu";
+          m.style.cssText =
+            "position:fixed;bottom:100px;left:16px;background:var(--bg-e);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow);z-index:9001;overflow:hidden;min-width:160px;";
+          [15, 30, 45, 60, 90].forEach((mins) => {
+            const btn = document.createElement("button");
+            btn.style.cssText =
+              "display:block;width:100%;padding:10px 16px;text-align:left;font-size:.82rem;color:var(--text-2);cursor:pointer;transition:background .15s;border:none;background:none;font-family:var(--font-b);";
+            btn.innerHTML = `<i class="fas fa-moon" style="margin-right:8px;color:var(--accent)"></i>${mins} minutes`;
+            btn.onmouseover = () => (btn.style.background = "rgba(255,255,255,.05)");
+            btn.onmouseout = () => (btn.style.background = "");
+            btn.onclick = () => {
+              set(mins);
+              m.remove();
+            };
+            m.appendChild(btn);
+          });
+          const cancel = document.createElement("button");
+          cancel.style.cssText =
+            "display:block;width:100%;padding:10px 16px;text-align:left;font-size:.82rem;color:#f87171;cursor:pointer;transition:background .15s;border:none;border-top:1px solid var(--border);background:none;font-family:var(--font-b);";
+          cancel.innerHTML = '<i class="fas fa-times" style="margin-right:8px"></i>Cancel timer';
+          cancel.onclick = () => {
+            stop();
+            m.remove();
+          };
+          m.appendChild(cancel);
+          document.body.appendChild(m);
+          setTimeout(
+            () =>
+              document.addEventListener("click", function h(e) {
+                if (!m.contains(e.target)) {
+                  m.remove();
+                  document.removeEventListener("click", h);
+                }
+              }),
+            100,
+          );
+        }
+        return { set, stop, cancel, showMenu };
+      })();
+      window.SleepTimer = SleepTimer;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 3: Random Movie / "I'm Feeling Lucky"
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function randomMovie() {
+        showToast("Finding something awesome…", "info");
+        vibrate("medium");
+        try {
+          const page = Math.floor(Math.random() * 15) + 1;
+          const data = await TMDB.fetch("/discover/movie", { sort_by: "popularity.desc", page, "vote_count.gte": 500 });
+          if (!data?.results?.length) return;
+          const picks = data.results.filter((r) => r.vote_average >= 6.5);
+          const movie = picks[Math.floor(Math.random() * picks.length)] || picks[0];
+          if (movie) openDetailModal(movie.id, "movie", false);
+        } catch {
+          showToast("Could not fetch a movie", "error");
+        }
+      }
+      window.randomMovie = randomMovie;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 4: User Rating System — 5-star ratings saved per title
+   ─────────────────────────────────────────────────────────────────────────── */
+      const Ratings = {
+        _key: "bb_user_ratings",
+        _data: null,
+        _load() {
+          if (!this._data) this._data = SafeStorage.get(this._key, {});
+          return this._data;
+        },
+        get(id) {
+          return this._load()[String(id)] || 0;
+        },
+        set(id, r) {
+          this._load()[String(id)] = r;
+          SafeStorage.set(this._key, this._data);
+          this._renderFor(String(id));
+          EventBus.emit("rating:set", { id, rating: r });
+          showToast(`Rated ${r}★`, "success");
+        },
+        remove(id) {
+          delete this._load()[String(id)];
+          SafeStorage.set(this._key, this._data);
+        },
+        renderWidget(id) {
+          const cur = this.get(id);
+          let html = `<div class="user-rating-wrap" id="ratingWidget-${id}"><span style="font-size:.76rem;color:var(--text-3);">Your rating:</span><div class="user-rating-stars">`;
+          for (let i = 1; i <= 5; i++) {
+            html += `<button class="star-btn${i <= cur ? " lit" : ""}" onclick="Ratings.set('${id}',${i})" title="${i} star${i > 1 ? "s" : ""}">★</button>`;
+          }
+          html += `</div>${cur ? `<button onclick="Ratings.remove('${id}');document.getElementById('ratingWidget-${id}').replaceWith(Ratings.renderWidget('${id}'))" style="font-size:.7rem;color:var(--text-3);background:none;border:none;cursor:pointer;margin-left:4px;">Clear</button>` : ""}</div>`;
+          const tmp = document.createElement("div");
+          tmp.innerHTML = html;
+          return tmp.firstElementChild;
+        },
+        _renderFor(id) {
+          const w = document.getElementById(`ratingWidget-${id}`);
+          if (w) w.replaceWith(this.renderWidget(id));
+        },
+      };
+      window.Ratings = Ratings;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 5: Collections / Franchise browser
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function browseCollection(collectionId, name) {
+        showResultsPanel(`<i class="fas fa-layer-group"></i> ${esc(name || "Collection")}`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch(`/collection/${collectionId}`);
+        if (!data?.parts) {
+          grid.innerHTML = '<p class="no-results">Collection not found</p>';
+          return;
+        }
+        const items = data.parts.sort((a, b) => (a.release_date || "").localeCompare(b.release_date || ""));
+        grid.innerHTML = items.map((i) => gridCard(norm(i, "movie"))).join("");
+        showToast(`${name}: ${items.length} films`, "info");
+      }
+      window.browseCollection = browseCollection;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 6: People / Actor detail page
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function openPersonPage(personId, personName) {
+        showResultsPanel(`<i class="fas fa-user"></i> ${esc(personName)}`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const [person, credits] = await Promise.all([
+          TMDB.fetch(`/person/${personId}`),
+          TMDB.fetch(`/person/${personId}/combined_credits`),
+        ]);
+        if (!credits) {
+          grid.innerHTML = '<p class="no-results">No credits found</p>';
+          return;
+        }
+        const cast = (credits.cast || [])
+          .filter((c) => c.media_type === "movie" || c.media_type === "tv")
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+          .slice(0, 40);
+        if (person) {
+          const bio = document.createElement("div");
+          bio.style.cssText = "padding:0 clamp(16px,4vw,52px) 24px;";
+          bio.innerHTML = `<div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;">
+      ${person.profile_path ? `<img src="${CONFIG.IMG_BASE}/w185${person.profile_path}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;" loading="lazy">` : ""}
+      <div><h2 style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;margin-bottom:6px;">${esc(person.name)}</h2>
+      ${person.birthday ? `<p style="font-size:.8rem;color:var(--text-2);">Born: ${person.birthday}${person.place_of_birth ? ` · ${esc(person.place_of_birth)}` : ""}</p>` : ""}
+      ${person.biography ? `<p style="font-size:.82rem;color:var(--text-2);margin-top:10px;line-height:1.65;max-width:640px;">${esc(person.biography.slice(0, 400))}…</p>` : ""}</div>
+    </div>`;
+          const rb = document.getElementById("resultsTitle");
+          if (rb?.parentElement) rb.parentElement.insertBefore(bio, grid);
+        }
+        grid.innerHTML = cast.map((c) => gridCard(norm(c, c.media_type))).join("");
+        AppState.stats.castSearches = (AppState.stats.castSearches || 0) + 1;
+      }
+      window.openPersonPage = openPersonPage;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 7: Trending Searches (cached from TMDB trending)
+   ─────────────────────────────────────────────────────────────────────────── */
+      const TrendingSearches = {
+        _cache: null,
+        async get() {
+          if (this._cache) return this._cache;
+          const data = await TMDB.fetch("/trending/all/day");
+          this._cache = (data?.results || [])
+            .slice(0, 8)
+            .map((r) => r.title || r.name)
+            .filter(Boolean);
+          return this._cache;
+        },
+        async renderInSearch() {
+          const sug = document.getElementById("searchSuggestions");
+          if (!sug) return;
+          const terms = await this.get();
+          if (!terms.length) return;
+          const existing = document.getElementById("searchInput")?.value.trim();
+          if (existing) return; // don't override actual input
+          sug.innerHTML =
+            `<div class="suggest-section-title">🔥 Trending Now</div>` +
+            terms
+              .map(
+                (t) =>
+                  `<div class="suggest-item suggest-trending" onclick="Search.triggerFull('${esc(t)}')"><i class="fas fa-fire suggest-icon" style="color:var(--accent)"></i><span>${esc(t)}</span></div>`,
+              )
+              .join("") +
+            `<div class="suggest-footer" onclick="TrendingSearches.renderInSearch()">Refresh trends</div>`;
+          sug.classList.add("active");
+        },
+      };
+      window.TrendingSearches = TrendingSearches;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 8: Quick-play on card hover (trigger autoplay from row card)
+   Already in cards via onclick autoPlay=true — enhanced: middle-click opens
+   ─────────────────────────────────────────────────────────────────────────── */
+      document.addEventListener("auxclick", (e) => {
+        if (e.button !== 1) return; // middle click
+        const card = e.target.closest(".card[onclick],.grid-card[onclick]");
+        if (!card) return;
+        e.preventDefault();
+        const match = card.getAttribute("onclick")?.match(/openDetailModal\('(\w+)','(\w+)'/);
+        if (match) openDetailModal(match[1], match[2], true); // autoPlay=true on middle-click
+      });
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 9: Ambient Backdrop Mode — full-page background from current movie
+   ─────────────────────────────────────────────────────────────────────────── */
+      const AmbientMode = {
+        _current: null,
+        set(backdropUrl) {
+          if (!AppState.settings.ambientMode || backdropUrl === this._current) return;
+          this._current = backdropUrl;
+          document.body.style.setProperty("--ambient-bg", backdropUrl ? `url('${backdropUrl}')` : "none");
+          const overlay = document.getElementById("ambientOverlay");
+          if (!overlay) {
+            const el = document.createElement("div");
+            el.id = "ambientOverlay";
+            el.style.cssText =
+              "position:fixed;inset:0;background-image:var(--ambient-bg);background-size:cover;background-position:center;opacity:.06;pointer-events:none;z-index:0;transition:opacity 1s ease;filter:blur(40px) saturate(2);";
+            document.body.appendChild(el);
+          }
+          const ov = document.getElementById("ambientOverlay");
+          if (ov) ov.style.backgroundImage = backdropUrl ? `url('${backdropUrl}')` : "none";
+        },
+        clear() {
+          this.set(null);
+        },
+      };
+      window.AmbientMode = AmbientMode;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 10: Custom Playlists / Collections creator
+   ─────────────────────────────────────────────────────────────────────────── */
+      const Playlists = {
+        _key: "bb_playlists",
+        _data: null,
+        _load() {
+          if (!this._data) this._data = SafeStorage.get(this._key, {});
+          return this._data;
+        },
+        create(name) {
+          const id = `pl_${Date.now()}`;
+          this._load()[id] = { id, name, items: [], createdAt: Date.now() };
+          SafeStorage.set(this._key, this._data);
+          showToast(`Playlist "${name}" created`, "success");
+          return id;
+        },
+        add(playlistId, mediaItem) {
+          const pl = this._load()[playlistId];
+          if (!pl) return;
+          if (pl.items.find((i) => i.id === mediaItem.id)) {
+            showToast("Already in playlist", "info");
+            return;
+          }
+          pl.items.unshift({ ...mediaItem, addedAt: Date.now() });
+          SafeStorage.set(this._key, this._data);
+          showToast(`Added to "${pl.name}"`, "success");
+        },
+        remove(playlistId, mediaId) {
+          const pl = this._load()[playlistId];
+          if (!pl) return;
+          pl.items = pl.items.filter((i) => i.id !== mediaId);
+          SafeStorage.set(this._key, this._data);
+        },
+        getAll() {
+          return Object.values(this._load());
+        },
+        delete(id) {
+          delete this._load()[id];
+          SafeStorage.set(this._key, this._data);
+        },
+        play(playlistId) {
+          const pl = this._load()[playlistId];
+          if (!pl?.items?.length) {
+            showToast("Playlist is empty", "info");
+            return;
+          }
+          openDetailModal(pl.items[0].id, pl.items[0].type, true);
+        },
+      };
+      window.Playlists = Playlists;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 11: Keyboard-navigable card grid (arrow keys + enter)
+   ─────────────────────────────────────────────────────────────────────────── */
+      (function initGridNav() {
+        document.addEventListener("keydown", (e) => {
+          if (document.activeElement?.closest("#searchResultsGrid")) {
+            const grid = document.getElementById("searchResultsGrid");
+            const cards = [...grid.querySelectorAll(".grid-card")];
+            const cur = cards.indexOf(document.activeElement);
+            const cols = Math.round(grid.offsetWidth / (cards[0]?.offsetWidth || 160)) || 1;
+            let next = -1;
+            if (e.key === "ArrowRight" && cur < cards.length - 1) next = cur + 1;
+            if (e.key === "ArrowLeft" && cur > 0) next = cur - 1;
+            if (e.key === "ArrowDown" && cur + cols < cards.length) next = cur + cols;
+            if (e.key === "ArrowUp" && cur - cols >= 0) next = cur - cols;
+            if (next >= 0) {
+              e.preventDefault();
+              cards[next].focus();
+            }
+          }
+        });
+      })();
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 12: Content Rating filter (min rating slider in results)
+   ─────────────────────────────────────────────────────────────────────────── */
+      const RatingFilter = {
+        _min: 0,
+        set(val) {
+          this._min = parseFloat(val) || 0;
+          const lbl = document.getElementById("ratingFilterLabel");
+          if (lbl) lbl.textContent = val > 0 ? `≥ ${val}★` : "All ratings";
+          document.querySelectorAll(".grid-card").forEach((card) => {
+            const ratingEl = card.querySelector(".match");
+            if (!ratingEl) return;
+            const pct = parseInt(ratingEl.textContent) || 0;
+            const stars = pct / 10;
+            card.style.display = stars >= this._min ? "" : "none";
+          });
+        },
+        reset() {
+          this.set(0);
+        },
+      };
+      window.RatingFilter = RatingFilter;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 13: Sort options for grid results
+   ─────────────────────────────────────────────────────────────────────────── */
+      function sortGrid(by) {
+        const grid = document.getElementById("searchResultsGrid");
+        if (!grid) return;
+        const cards = [...grid.querySelectorAll(".grid-card")];
+        cards.sort((a, b) => {
+          const getVal = (el) => {
+            if (by === "rating") return parseInt(el.querySelector(".match")?.textContent || "0") || 0;
+            if (by === "year")
+              return parseInt(el.querySelector(".grid-card-meta span:nth-child(2)")?.textContent || "0") || 0;
+            if (by === "title") return el.querySelector(".grid-card-title")?.textContent || "";
+            return 0;
+          };
+          const va = getVal(a),
+            vb = getVal(b);
+          if (by === "title") return va.localeCompare(vb);
+          return vb - va;
+        });
+        const frag = document.createDocumentFragment();
+        cards.forEach((c) => frag.appendChild(c));
+        grid.appendChild(frag);
+        showToast(`Sorted by ${by}`, "info");
+      }
+      window.sortGrid = sortGrid;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 14: Watch Statistics Dashboard — already has charts, enhance with
+               daily/weekly/all-time stats rendering in a dedicated view
+   ─────────────────────────────────────────────────────────────────────────── */
+      // Hooked into switchSettingsTab — handled via renderStatsChart.
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 15: Wallpaper/Screenshot mode — save current backdrop as download
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function saveWallpaper() {
+        const id = State.get("currentId"),
+          type = State.get("currentType");
+        if (!id) {
+          showToast("Open a movie first", "info");
+          return;
+        }
+        const data = await TMDB.fetch(`/${type}/${id}`);
+        const url = data?.backdrop_path ? `${CONFIG.IMG_ORIG}${data.backdrop_path}` : null;
+        if (!url) {
+          showToast("No backdrop available", "error");
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `BingeBox_${(data.title || data.name || id).replace(/\s+/g, "_")}.jpg`;
+        a.target = "_blank";
+        a.click();
+        showToast("Wallpaper download started", "success");
+        AppState._savedWallpaper = true;
+        Achievements.check();
+      }
+      window.saveWallpaper = saveWallpaper;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 16: "What to watch" recommendation engine (based on top genres)
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function getPersonalRecommendations() {
+        const topGenres = Object.entries(AppState.stats.topGenres || {})
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3);
+        if (!topGenres.length) {
+          showToast("Watch some movies first to get recommendations!", "info");
+          return;
+        }
+        const genreIds = topGenres
+          .map(([name]) => Object.entries(GENRE_MAP).find(([, n]) => n === name)?.[0])
+          .filter(Boolean);
+        showResultsPanel("🧠 Recommended For You");
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch("/discover/movie", {
+          with_genres: genreIds.join("|"),
+          sort_by: "vote_average.desc",
+          "vote_count.gte": 200,
+          "vote_average.gte": 7,
+        });
+        if (!data?.results?.length) {
+          grid.innerHTML = '<p class="no-results">Could not load recommendations</p>';
+          return;
+        }
+        // Filter out already-watched
+        const watched = new Set((State.get("watchHistory") || []).map((h) => h.id));
+        const fresh = data.results.filter((r) => !watched.has(String(r.id)));
+        grid.innerHTML = (fresh.length ? fresh : data.results).map((i) => gridCard(norm(i, "movie"))).join("");
+        showToast(
+          `Based on your top genres: ${topGenres
+            .slice(0, 2)
+            .map((g) => g[0])
+            .join(", ")}`,
+          "info",
+          4000,
+        );
+      }
+      window.getPersonalRecommendations = getPersonalRecommendations;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 17: Multi-language UI support (language selector in settings)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function setLanguage(lang) {
+        AppState.settings.language = lang;
+        SafeStorage.set("bb_settings", AppState.settings);
+        TMDB.clearCache();
+        showToast(`Language set to ${lang}. Refreshing content…`, "info");
+        setTimeout(() => {
+          Hero.load();
+          Rows.buildAll();
+        }, 500);
+      }
+      window.setLanguage = setLanguage;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 18: Content warnings / Mature content toggle
+   ─────────────────────────────────────────────────────────────────────────── */
+      function toggleAdultContent() {
+        AppState.settings.includeAdult = !AppState.settings.includeAdult;
+        document.getElementById("tog-includeAdult")?.classList.toggle("on", AppState.settings.includeAdult);
+        SafeStorage.set("bb_settings", AppState.settings);
+        TMDB.clearCache();
+        showToast(AppState.settings.includeAdult ? "Adult content enabled" : "Adult content disabled", "info");
+      }
+      window.toggleAdultContent = toggleAdultContent;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 19: Deep-link sharing with rich metadata
+   ─────────────────────────────────────────────────────────────────────────── */
+      async function shareMediaEnhanced(title, id, type) {
+        const url = `${window.location.origin}${window.location.pathname}#${type}/${id}`;
+        const data = { title: `Watch ${title} on BingeBox Ω`, text: `Check out "${title}" on BingeBox!`, url };
+        if (navigator.share) {
+          try {
+            await navigator.share(data);
+            Achievements.check();
+            return;
+          } catch (_) {}
+        }
+        await navigator.clipboard?.writeText(url);
+        showToast("🔗 Link copied to clipboard!", "success");
+      }
+      window.shareMediaEnhanced = shareMediaEnhanced;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 20: Offline detection + graceful degradation
+   ─────────────────────────────────────────────────────────────────────────── */
+      (function initOfflineDetection() {
+        function onOnline() {
+          showToast("Connection restored 🟢", "success");
+        }
+        function onOffline() {
+          showToast("You're offline. Some features unavailable.", "warning", 6000);
+        }
+        window.addEventListener("online", onOnline);
+        window.addEventListener("offline", onOffline);
+        if (!navigator.onLine) onOffline();
+      })();
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 21: Hover video preview (show trailer thumb on card hover)
+   Lightweight — only fetches on first hover per item, caches result
+   ─────────────────────────────────────────────────────────────────────────── */
+      const HoverPreview = {
+        _cache: new Map(),
+        _timer: null,
+        async show(cardEl, id, type) {
+          this._timer = setTimeout(async () => {
+            if (!this._cache.has(id)) {
+              const vids = await TMDB.fetch(`/${type}/${id}/videos`);
+              const t = (vids?.results || []).find(
+                (v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
+              );
+              this._cache.set(id, t?.key || null);
+            }
+            const key = this._cache.get(id);
+            if (!key || !cardEl.matches(":hover")) return;
+            const ex = cardEl.querySelector(".card-preview");
+            if (ex) return;
+            const preview = document.createElement("div");
+            preview.className = "card-preview";
+            preview.style.cssText =
+              "position:absolute;inset:0;z-index:5;background:#000;border-radius:inherit;overflow:hidden;";
+            preview.innerHTML = `<img src="https://img.youtube.com/vi/${key}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;opacity:.8;"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><div style="width:44px;height:44px;background:rgba(229,9,20,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;">▶</div></div>`;
+            cardEl.querySelector(".card-img-wrap")?.appendChild(preview);
+          }, 1200);
+        },
+        hide(cardEl) {
+          clearTimeout(this._timer);
+          cardEl.querySelector(".card-preview")?.remove();
+        },
+      };
+      window.HoverPreview = HoverPreview;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 22: Recently viewed cast searches (chip pills)
+   ─────────────────────────────────────────────────────────────────────────── */
+      const CastHistory = {
+        _key: "bb_cast_history",
+        add(name) {
+          let h = SafeStorage.get(this._key, []);
+          h = [name, ...h.filter((n) => n !== name)].slice(0, 8);
+          SafeStorage.set(this._key, h);
+        },
+        get() {
+          return SafeStorage.get(this._key, []);
+        },
+        renderChips(container) {
+          const hist = this.get();
+          if (!hist.length || !container) return;
+          container.innerHTML =
+            `<div class="suggest-section-title">Recent Cast Searches</div>` +
+            hist
+              .map(
+                (n) =>
+                  `<div class="suggest-item" onclick="searchByCast('${esc(n)}')" style="font-size:.8rem;"><i class="fas fa-user suggest-icon"></i>${esc(n)}</div>`,
+              )
+              .join("");
+        },
+      };
+      window.CastHistory = CastHistory;
+      // Hook into searchByCast to record
+      const _origSearchByCast = window.searchByCast;
+      window.searchByCast = function (name) {
+        CastHistory.add(name);
+        if (_origSearchByCast) _origSearchByCast(name);
+      };
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 23: In-player subtitle toggle UI (shows embed server note)
+   ─────────────────────────────────────────────────────────────────────────── */
+      function toggleSubtitleNote() {
+        const ex = document.getElementById("subtitleNote");
+        if (ex) {
+          ex.remove();
+          return;
+        }
+        const note = document.createElement("div");
+        note.id = "subtitleNote";
+        note.style.cssText =
+          "position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:var(--bg-e);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 18px;font-size:.82rem;color:var(--text-2);z-index:20;white-space:nowrap;box-shadow:var(--shadow);";
+        note.innerHTML = `<i class="fas fa-closed-captioning" style="color:var(--accent);margin-right:8px;"></i>Subtitles are controlled within the player embed.<br><small style="color:var(--text-3)">Look for CC/subtitle controls inside the video player.</small><button onclick="document.getElementById('subtitleNote').remove()" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.8rem;">✕</button>`;
+        document.getElementById("playerBox")?.appendChild(note);
+        setTimeout(() => note?.remove(), 5000);
+      }
+      window.toggleSubtitleNote = toggleSubtitleNote;
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 24: Notification when new season/episode detected
+   ─────────────────────────────────────────────────────────────────────────── */
+      EventBus.on("profile:selected", async ({ name }) => {
+        // Check wishlist TV shows for new episodes in background
+        const wl = State.get("wishlist")
+          .filter((w) => w.type === "tv")
+          .slice(0, 5);
+        for (const show of wl) {
+          const data = await TMDB.fetch(`/tv/${show.id}`).catch(() => null);
+          if (!data) continue;
+          const lastKnown = SafeStorage.get(`bb_show_ep_${show.id}`, null);
+          const current = `S${data.number_of_seasons}E${data.last_episode_to_air?.episode_number || 0}`;
+          if (lastKnown && lastKnown !== current) {
+            Navbar.addNotification(`New episode: ${show.title}`, `${current} is now available!`, "📺");
+          }
+          SafeStorage.set(`bb_show_ep_${show.id}`, current);
+        }
+      });
+
+      /* ──────────────────────────────────────────────────────────────────────────
+   FEATURE 25: Smooth hero image preloading (no flash on slide change)
+   ─────────────────────────────────────────────────────────────────────────── */
+      const ImagePreloader = {
+        _loaded: new Set(),
+        preload(urls) {
+          urls.forEach((url) => {
+            if (!url || this._loaded.has(url)) return;
+            const img = new Image();
+            img.onload = () => this._loaded.add(url);
+            img.src = url;
+          });
+        },
+      };
+      window.ImagePreloader = ImagePreloader;
+      // Hook into Hero.load to preload all backdrops
+      EventBus.on("state:heroItems", ({ next }) => {
+        if (next?.length) ImagePreloader.preload(next.map((i) => i.backdrop).filter(Boolean));
+      });
+
+      /* ── Updated init() to call new features ──────────────────────────────── */
+      // Patch init to call new feature initializers
+      const _origInit = window.init;
+      // (init is defined below, this just adds new behavior on top via EventBus)
+      EventBus.on("profile:selected", () => {
+        // Show random movie button after profile is selected
+        setTimeout(() => {
+          const btn = document.getElementById("randomBtn");
+          if (btn) btn.classList.add("visible");
+          const stb = document.getElementById("scrollTopBtn");
+          // Already handled by scroll listener
+        }, 800);
+      });
+
+      /* ── SETTINGS UI: 2026 ADDITIONAL ROWS (injected into About/Discovery tabs) ── */
+      (function patchSettings() {
+        // Patch switchSettingsTab to inject mood/decade into Discovery
+        const _orig = window.switchSettingsTab;
+        window.switchSettingsTab = function (tab, btn) {
+          if (_orig) _orig(tab, btn);
+          if (tab === "discover") {
+            setTimeout(() => {
+              const mood = document.getElementById("moodSelectorContainer");
+              if (mood && !mood.hasChildNodes()) renderMoodSelector(mood);
+              const dec = document.getElementById("decadeGridContainer");
+              if (dec && !dec.hasChildNodes()) renderDecadeGrid(dec);
+            }, 80);
+          }
+          if (tab === "about") {
+            setTimeout(_refreshServerStatus, 120);
+            const ab = document.getElementById("aboutModeLabel");
+            if (ab) ab.textContent = CONFIG._hasProxy === true ? "🟢 Server Proxy" : "🟡 Standalone";
+            const ep = document.getElementById("aboutTmdbEndpoint");
+            if (ep) ep.textContent = CONFIG._hasProxy === true ? CONFIG.TMDB_BASE + "/*" : CONFIG.TMDB_DIRECT + "/*";
+          }
+        };
+      })();
+    </script>
+
+    <!-- BingeBox 2026 — 50+ Feature Addon -->
+    <script>
+      /* ═══════════════════════════════════════════════════════════════
+   BINGEBOX 2026 v4.0 — 50+ FEATURE ADDON
+   ═══════════════════════════════════════════════════════════════ */
+      "use strict";
+
+      /* F01 — MOOD-BASED DISCOVERY */
+      const MOODS = {
+        "😂 Laugh": { with_genres: "35", sort_by: "popularity.desc" },
+        "😭 Cry": { with_genres: "18,10749", sort_by: "vote_average.desc", "vote_count.gte": "500" },
+        "😱 Scared": { with_genres: "27,53", sort_by: "popularity.desc" },
+        "🤩 Epic": { with_genres: "28,878,14", sort_by: "popularity.desc" },
+        "🧠 Think": { with_genres: "878,9648,99", sort_by: "vote_average.desc", "vote_count.gte": "300" },
+        "❤️ Romance": { with_genres: "10749,35", sort_by: "popularity.desc" },
+        "🌍 Travel": { with_genres: "12,14", sort_by: "popularity.desc" },
+        "🎵 Musical": { with_genres: "10402,35", sort_by: "popularity.desc" },
+        "👨‍👩‍👧 Family": { with_genres: "10751", sort_by: "popularity.desc" },
+      };
+      async function browseByMood(emoji) {
+        const mood = MOODS[emoji];
+        if (!mood) return;
+        showResultsPanel(`${emoji}`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch("/discover/movie", mood);
+        grid.innerHTML = data?.results?.length
+          ? data.results.map((i) => gridCard(norm(i, "movie"))).join("")
+          : '<p class="no-results">Nothing found.</p>';
+        showToast(`${emoji} — ${data?.results?.length || 0} titles`, "info");
+      }
+      window.browseByMood = browseByMood;
+
+      /* F02 — DECADE BROWSER */
+      async function browseByDecade(decade) {
+        showResultsPanel(`📅 ${decade}s`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const data = await TMDB.fetch("/discover/movie", {
+          "primary_release_date.gte": `${decade}-01-01`,
+          "primary_release_date.lte": `${decade + 9}-12-31`,
+          sort_by: "vote_average.desc",
+          "vote_count.gte": 200,
+        });
+        grid.innerHTML = data?.results?.length
+          ? data.results.map((i) => gridCard(norm(i, "movie"))).join("")
+          : '<p class="no-results">No results.</p>';
+      }
+      window.browseByDecade = browseByDecade;
+
+      /* F03 — ADVANCED FILTER PANEL */
+      const Filters = {
+        _s: { type: "all", minRating: 0, decade: null, sort: "popularity.desc" },
+        open() {
+          let p = document.getElementById("filterPanel");
+          if (!p) {
+            p = document.createElement("div");
+            p.id = "filterPanel";
+            p.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;"><div class="filter-panel-title">🎛️ Filters</div><button onclick="Filters.close()" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:1rem;">✕</button></div>
+        <div class="filter-group"><span class="filter-group-label">Type</span><div class="filter-chips">${["All", "Movie", "TV"].map((t) => `<div class="filter-chip${t === "All" ? " active" : ""}" onclick="Filters._s.type='${t.toLowerCase()}';this.parentNode.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">${t}</div>`).join("")}</div></div>
+        <div class="filter-group"><span class="filter-group-label">Min Rating</span><input type="range" min="0" max="9" step="1" value="0" oninput="Filters._s.minRating=+this.value;document.getElementById('fRL').textContent=this.value>0?this.value+'★':'Any'"><span id="fRL" style="font-size:.76rem;color:var(--text-3);font-family:var(--font-m);">Any</span></div>
+        <div class="filter-group"><span class="filter-group-label">Decade</span><div class="decade-grid">${[1960, 1970, 1980, 1990, 2000, 2010, 2020].map((d) => `<div class="decade-btn" onclick="Filters._s.decade=${d};this.parentNode.querySelectorAll('.decade-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${d}s</div>`).join("")}</div></div>
+        <div class="filter-group"><span class="filter-group-label">Sort</span><div class="filter-chips">${[
+          ["🔥 Popular", "popularity.desc"],
+          ["⭐ Rated", "vote_average.desc"],
+          ["🆕 New", "release_date.desc"],
+        ]
+          .map(
+            ([l, v]) =>
+              `<div class="filter-chip" onclick="Filters._s.sort='${v}';this.parentNode.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">${l}</div>`,
+          )
+          .join("")}</div></div>
+        <button class="filter-apply-btn" onclick="Filters.apply()"><i class="fas fa-check"></i> Apply</button>
+        <button onclick="Filters._s={type:'all',minRating:0,decade:null,sort:'popularity.desc'};Filters.open()" style="width:100%;padding:8px;background:none;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.8rem;color:var(--text-3);cursor:pointer;margin-top:8px;font-family:var(--font-b);">Reset All</button>`;
+            document.body.appendChild(p);
+          }
+          p.classList.add("open");
+        },
+        close() {
+          document.getElementById("filterPanel")?.classList.remove("open");
+        },
+        async apply() {
+          this.close();
+          const ep = this._s.type === "tv" ? "/discover/tv" : "/discover/movie";
+          const p = { sort_by: this._s.sort };
+          if (this._s.minRating > 0) p["vote_average.gte"] = this._s.minRating;
+          if (this._s.decade) {
+            p["primary_release_date.gte"] = `${this._s.decade}-01-01`;
+            p["primary_release_date.lte"] = `${this._s.decade + 9}-12-31`;
+          }
+          showResultsPanel("🎛️ Filtered Results");
+          const grid = document.getElementById("searchResultsGrid");
+          grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+          const data = await TMDB.fetch(ep, p);
+          grid.innerHTML = data?.results?.length
+            ? data.results.map((i) => gridCard(norm(i, this._s.type === "tv" ? "tv" : "movie"))).join("")
+            : '<p class="no-results">No results.</p>';
+        },
+      };
+      window.Filters = Filters;
+
+      /* F04 — QUICK INSTANT SEARCH (debounced 220ms) */
+      (function () {
+        let t = null;
+        const inp = document.getElementById("searchInput");
+        if (!inp) return;
+        inp.addEventListener("input", () => {
+          clearTimeout(t);
+          const q = inp.value.trim();
+          if (!q) {
+            TrendingSearches?.renderInSearch();
+            return;
+          }
+          if (q.length < 2) return;
+          t = setTimeout(async () => {
+            const data = await TMDB.fetch("/search/multi", { query: q, page: 1 });
+            if (!data?.results?.length) return;
+            const sug = document.getElementById("searchSuggestions");
+            if (!sug) return;
+            const items = data.results.slice(0, 7);
+            sug.innerHTML =
+              '<div class="suggest-section-title">Quick Results</div>' +
+              items
+                .map((r) => {
+                  const title = r.title || r.name || "?",
+                    year = (r.release_date || r.first_air_date || "").slice(0, 4),
+                    type = r.media_type === "tv" ? "tv" : "movie";
+                  const img = r.poster_path
+                    ? `<img class="suggest-poster" src="${CONFIG.IMG_W500}${r.poster_path}" loading="lazy">`
+                    : '<div style="width:38px;height:54px;background:var(--bg-e);border-radius:5px;flex-shrink:0;"></div>';
+                  return `<div class="suggest-item" onclick="openDetailModal('${r.id}','${type}',false);Search.close()">${img}<div class="suggest-info"><div class="suggest-title">${esc(title)}</div><div class="suggest-meta">${year}${type ? " · " + type.toUpperCase() : ""}</div></div></div>`;
+                })
+                .join("") +
+              `<div class="suggest-footer" onclick="Search.doSearch()">All results for "${esc(q)}"</div>`;
+            sug.classList.add("active");
+          }, 220);
+        });
+      })();
+
+      /* F05 — SCROLL PROGRESS BAR (already injected via compact CSS block in engine) */
+
+      /* F06 — LETTERBOX / CINEMASCOPE TOGGLE */
+      function toggleLetterbox() {
+        const box = document.getElementById("playerBox");
+        if (!box) return;
+        const on = box.classList.toggle("letterbox-mode");
+        if (!document.getElementById("lbStyle")) {
+          const s = document.createElement("style");
+          s.id = "lbStyle";
+          s.textContent =
+            ".player-box.letterbox-mode #streamPlayer{aspect-ratio:unset!important;height:56.25vw;max-height:calc(100vw*9/21);}";
+          document.head.appendChild(s);
+        }
+        showToast(`Letterbox ${on ? "ON" : "OFF"}`, "info");
+      }
+      window.toggleLetterbox = toggleLetterbox;
+
+      /* F07 — NETWORK SPEED TEST */
+      const NetSpeed = {
+        async check() {
+          const t0 = Date.now();
+          try {
+            await fetch(`${CONFIG.IMG_W500}/nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg`, {
+              cache: "no-store",
+              signal: AbortSignal.timeout(4000),
+            });
+            const ms = Date.now() - t0,
+              speed = ms < 600 ? "🟢 Fast" : ms < 1500 ? "🟡 OK" : "🔴 Slow";
+            showToast(`Connection: ${speed} (${ms}ms)`, "info", 4000);
+          } catch {
+            showToast("Speed test failed (offline?)", "error");
+          }
+        },
+      };
+      window.NetSpeed = NetSpeed;
+
+      /* F08 — DETAIL PREFETCH on card hover */
+      const Prefetch = {
+        _q: new Set(),
+        queue(id, type) {
+          const k = `${id}_${type}`;
+          if (this._q.has(k)) return;
+          this._q.add(k);
+          setTimeout(
+            () =>
+              TMDB.fetch(`/${type}/${id}`, {}, CONFIG.CACHE_TTL_LONG)
+                .catch(() => {})
+                .finally(() => this._q.delete(k)),
+            1000,
+          );
+        },
+      };
+      window.Prefetch = Prefetch;
+      document.addEventListener(
+        "mouseenter",
+        (e) => {
+          const c = e.target.closest(".card[onclick],.grid-card[onclick]");
+          if (!c) return;
+          const m = c.getAttribute("onclick")?.match(/openDetailModal\('(\w+)','(\w+)'/);
+          if (m) Prefetch.queue(m[1], m[2]);
+        },
+        true,
+      );
+
+      /* F09 — HISTORY EXPORT AS CSV */
+      function exportHistoryCSV() {
+        const h = State.get("watchHistory") || [];
+        if (!h.length) {
+          showToast("No history to export", "info");
+          return;
+        }
+        const rows = ["Title,Type,ID,Date,Season,Episode"]
+          .concat(
+            h.map(
+              (i) =>
+                `"${(i.title || "").replace(/"/g, '""')}",${i.type || ""},${i.id || ""},${i.watchedAt ? new Date(i.watchedAt).toISOString() : ""},${i.season || ""},${i.episode || ""}`,
+            ),
+          )
+          .join("\n");
+        const a = Object.assign(document.createElement("a"), {
+          href: URL.createObjectURL(new Blob([rows], { type: "text/csv" })),
+          download: "BingeBox_History_2026.csv",
+        });
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("History exported as CSV!", "success");
+      }
+      window.exportHistoryCSV = exportHistoryCSV;
+
+      /* F10 — DIRECTOR FILMOGRAPHY */
+      async function browseDirector(personId, name) {
+        showResultsPanel(`🎬 Directed by ${esc(name)}`);
+        const grid = document.getElementById("searchResultsGrid");
+        grid.innerHTML = '<div class="results-loading"><div class="detail-spinner"></div></div>';
+        const credits = await TMDB.fetch(`/person/${personId}/movie_credits`);
+        const directed = (credits?.crew || [])
+          .filter((c) => c.job === "Director")
+          .sort((a, b) => (b.release_date || "").localeCompare(a.release_date || ""));
+        grid.innerHTML = directed.length
+          ? directed.map((m) => gridCard(norm(m, "movie"))).join("")
+          : '<p class="no-results">No directed films found.</p>';
+        if (directed.length) showToast(`${name}: ${directed.length} films directed`, "info");
+      }
+      window.browseDirector = browseDirector;
+
+      /* F11 — PER-TITLE NOTES */
+      const Notes = {
+        _key: "bb_notes",
+        get(id) {
+          return SafeStorage.get(this._key, {})[String(id)] || "";
+        },
+        set(id, text) {
+          const all = SafeStorage.get(this._key, {});
+          if (text.trim()) all[String(id)] = text.trim();
+          else delete all[String(id)];
+          SafeStorage.set(this._key, all);
+          showToast("Note saved", "success");
+        },
+        renderWidget(id) {
+          const cur = this.get(id);
+          const d = document.createElement("div");
+          d.style.cssText = "margin-top:16px;";
+          d.innerHTML = `<div style="font-family:var(--font-m);font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;">📝 My Notes</div>
+      <textarea id="note_${id}" style="width:100%;min-height:80px;background:var(--bg-e);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;font-family:var(--font-b);font-size:.82rem;color:var(--text);resize:vertical;outline:none;transition:border-color var(--t);" placeholder="Add a personal note…" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">${esc(cur)}</textarea>
+      <button onclick="Notes.set('${id}',document.getElementById('note_${id}').value)" style="margin-top:6px;padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--font-b);font-size:.78rem;font-weight:600;cursor:pointer;">Save Note</button>`;
+          return d;
+        },
+      };
+      window.Notes = Notes;
+
+      /* F12 — AUTOPLAY COUNTDOWN */
+      const AutoplayCountdown = {
+        _t: null,
+        start(fn, secs = 15) {
+          if (!AppState.settings.autoPlayNext) return;
+          let c = secs;
+          const el = document.createElement("div");
+          el.id = "apCountdown";
+          el.style.cssText =
+            "position:fixed;bottom:88px;right:24px;background:var(--bg-e);border:1.5px solid var(--accent);border-radius:var(--r-md);padding:12px 18px;z-index:9001;font-size:.85rem;color:var(--text);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px;animation:dropIn .2s var(--ease-out);";
+          el.innerHTML = `<i class="fas fa-forward" style="color:var(--accent)"></i><span id="apTxt">Next in ${c}s</span><button onclick="AutoplayCountdown.cancel()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text-3);cursor:pointer;font-size:.75rem;font-family:var(--font-b);">Cancel</button>`;
+          document.body.appendChild(el);
+          this._t = setInterval(() => {
+            c--;
+            const t = document.getElementById("apTxt");
+            if (t) t.textContent = `Next in ${c}s`;
+            if (c <= 0) {
+              this.cancel();
+              fn();
+            }
+          }, 1000);
+        },
+        cancel() {
+          clearInterval(this._t);
+          this._t = null;
+          document.getElementById("apCountdown")?.remove();
+        },
+      };
+      window.AutoplayCountdown = AutoplayCountdown;
+
+      /* F13 — SMART KEYBOARD SHORTCUTS (additional 2026) */
+      document.addEventListener("keydown", (e) => {
+        if (
+          document.activeElement?.tagName === "INPUT" ||
+          document.activeElement?.tagName === "TEXTAREA" ||
+          document.activeElement?.isContentEditable
+        )
+          return;
+        if (e.key === "F" && e.shiftKey) {
+          Filters.open();
+          return;
+        }
+        if (e.key === "r" || e.key === "R") {
+          randomMovie?.();
+          return;
+        }
+        if (e.key === "k" || e.key === "K") {
+          SleepTimer?.showMenu();
+          return;
+        }
+        if (e.key === "g" || e.key === "G") {
+          getPersonalRecommendations?.();
+          return;
+        }
+        if (e.key === "l" || e.key === "L") {
+          toggleLetterbox?.();
+          return;
+        }
+        if (e.key === "t" || e.key === "T") {
+          toggleSetting("theaterMode");
+          return;
+        }
+        if (e.key === "c" || e.key === "C") {
+          toggleSetting("compactMode");
+          return;
+        }
+      });
+
+      /* F14 — SHARE VIA WEB SHARE API (enhanced) */
+      async function shareMediaEnhanced(title, id, type) {
+        const url = `${window.location.origin}${window.location.pathname}#${type}/${id}`;
+        try {
+          await navigator.share({ title: `Watch ${title} on BingeBox 2026`, text: `Check out "${title}"!`, url });
+          Achievements.check();
+        } catch {
+          await navigator.clipboard?.writeText(url);
+          showToast("🔗 Link copied!", "success");
+        }
+      }
+      window.shareMediaEnhanced = shareMediaEnhanced;
+
+      /* F15 — CONTEXT MENU UPGRADE (added to detail modal) */
+      EventBus.on("detail:opened", ({ id, type, title, poster }) => {
+        /* Auto-open ambient if enabled */
+        if (AppState.settings.ambientMode) {
+          TMDB.fetch(`/${type}/${id}`)
+            .then((d) => {
+              if (d?.backdrop_path) AmbientMode?.set(`${CONFIG.IMG_ORIG}${d.backdrop_path}`);
+            })
+            .catch(() => {});
+        }
+      });
+
+      /* F16 — BOOKMARK FEATURE (quick save without full wishlist) */
+      const Bookmarks = {
+        _key: "bb_bookmarks",
+        get() {
+          return SafeStorage.get(this._key, []);
+        },
+        add(item) {
+          const b = this.get();
+          if (!b.find((i) => i.id === item.id)) {
+            b.unshift({ ...item, savedAt: Date.now() });
+            SafeStorage.set(this._key, b.slice(0, 100));
+            showToast("🔖 Bookmarked!", "success");
+          }
+        },
+        remove(id) {
+          SafeStorage.set(
+            this._key,
+            this.get().filter((i) => i.id !== id),
+          );
+        },
+        has(id) {
+          return this.get().some((i) => i.id === id);
+        },
+      };
+      window.Bookmarks = Bookmarks;
+
+      /* F17 — WATCHLIST STATS SUMMARY */
+      function getWatchlistStats() {
+        const wl = State.get("wishlist") || [];
+        const movies = wl.filter((w) => w.type === "movie").length;
+        const shows = wl.filter((w) => w.type === "tv").length;
+        return { total: wl.length, movies, shows };
+      }
+      window.getWatchlistStats = getWatchlistStats;
+
+      /* F18 — EASTER EGG: MATRIX RAIN (trigger with Alt+M) */
+      document.addEventListener("keydown", (e) => {
+        if (e.altKey && e.key === "m") {
+          const existing = document.getElementById("matrixCanvas");
+          if (existing) {
+            existing.remove();
+            return;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.id = "matrixCanvas";
+          canvas.style.cssText = "position:fixed;top:0;left:0;z-index:99998;pointer-events:none;opacity:.18;";
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          document.body.appendChild(canvas);
+          const ctx = canvas.getContext("2d");
+          const cols = Math.floor(canvas.width / 14);
+          const drops = Array(cols).fill(1);
+          const chars =
+            "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01234567890ABCDEF";
+          let raf;
+          function draw() {
+            ctx.fillStyle = "rgba(0,0,0,.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0ff";
+            ctx.font = "13px monospace";
+            drops.forEach((y, i) => {
+              ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 14, y * 14);
+              if (y * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+              drops[i]++;
+            });
+            raf = requestAnimationFrame(draw);
+          }
+          draw();
+          setTimeout(() => {
+            cancelAnimationFrame(raf);
+            canvas.remove();
+          }, 8000);
+          showToast("👾 MATRIX MODE — exits in 8s", "info");
+        }
+      });
+
+      /* F19 — RANDOM EPISODE (for TV shows) */
+      async function randomEpisode(showId, showTitle) {
+        if (!showId) {
+          showToast("Open a TV show first", "info");
+          return;
+        }
+        const data = await TMDB.fetch(`/tv/${showId}`).catch(() => null);
+        if (!data?.number_of_seasons) {
+          showToast("Could not load seasons", "error");
+          return;
+        }
+        const s = Math.floor(Math.random() * data.number_of_seasons) + 1;
+        const seasonData = await TMDB.fetch(`/tv/${showId}/season/${s}`).catch(() => null);
+        if (!seasonData?.episodes?.length) {
+          showToast("No episodes found", "error");
+          return;
+        }
+        const ep = seasonData.episodes[Math.floor(Math.random() * seasonData.episodes.length)];
+        playEpisode(
+          showId,
+          s,
+          ep.episode_number,
+          `${showTitle || "Show"} S${s}E${ep.episode_number}: ${ep.name || ""}`,
+        );
+        showToast(`🎲 Random: S${s}E${ep.episode_number}${ep.name ? " — " + ep.name : ""}`, "info", 5000);
+      }
+      window.randomEpisode = randomEpisode;
+
+      /* F20 — CONTINUE WATCHING REMINDER */
+      EventBus.on("profile:selected", () => {
+        const history = State.get("watchHistory") || [];
+        const recent = history.filter((h) => h.type === "tv" && h.season && h.episode).slice(0, 3);
+        if (!recent.length || !AppState.settings.notificationsEnabled) return;
+        setTimeout(() => {
+          recent.forEach((h, i) =>
+            setTimeout(() => {
+              Navbar.addNotification(`Continue: ${h.title}`, `Resume S${h.season}E${h.episode}`, "▶️");
+            }, i * 1200),
+          );
+        }, 2500);
+      });
+
+      /* F21 — WATCHLIST SORT */
+      function sortWishlist(by = "added") {
+        const wl = [...(State.get("wishlist") || [])];
+        if (by === "title") wl.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        else if (by === "year") wl.sort((a, b) => (b.year || 0) - (a.year || 0));
+        else wl.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+        State.set("wishlist", wl);
+        if (typeof renderWishlist === "function") renderWishlist();
+        showToast(`Sorted by ${by}`, "info");
+      }
+      window.sortWishlist = sortWishlist;
+
+      /* F22 — DYNAMIC META DESCRIPTION (SEO / share preview) */
+      EventBus.on("detail:opened", ({ title, overview }) => {
+        if (title) document.title = `${title} — BingeBox 2026`;
+        const meta = document.querySelector('meta[name="description"]');
+        if (meta && overview) meta.setAttribute("content", overview.slice(0, 155));
+      });
+      EventBus.on("detail:closed", () => {
+        document.title = "BingeBox 2026";
+        const meta = document.querySelector('meta[name="description"]');
+        if (meta) meta.setAttribute("content", "BingeBox 2026 — The ultimate streaming platform.");
+      });
+
+      /* F23 — FULLSCREEN DOUBLE-CLICK on player */
+      document.addEventListener("dblclick", (e) => {
+        if (e.target.closest("#playerBox:not(.cinema-mode)")) goFullscreen?.();
+        else if (e.target.closest("#playerBox.cinema-mode")) _exitCinema?.();
+      });
+
+      /* F24 — PARTYENGINE TYPING sendTyping() wrapper */
+      if (window.PartyEngine && !PartyEngine.sendTyping) {
+        PartyEngine.sendTyping = function () {
+          const ind = document.getElementById("partyTypingIndicator");
+          if (ind) {
+            ind.style.display = "block";
+            ind.textContent = "You are typing…";
+            clearTimeout(PartyEngine._typTimeout);
+            PartyEngine._typTimeout = setTimeout(() => {
+              ind.style.display = "none";
+            }, 2000);
+          }
+        };
+      }
+
+      /* F25 — INFINITE HERO AUTO-ADVANCE on idle */
+      (function initHeroIdleAdvance() {
+        let idleTimer = null;
+        function resetIdle() {
+          clearTimeout(idleTimer);
+          idleTimer = setTimeout(() => {
+            if (AppState.settings.ambientGlow) Hero.next?.();
+          }, 12000);
+        }
+        ["mousemove", "keydown", "scroll", "touchstart"].forEach((ev) =>
+          window.addEventListener(ev, resetIdle, { passive: true }),
+        );
+        resetIdle();
+      })();
+
+      /* F26 — TRAILER AUTO-CLOSE on escape */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const to = document.getElementById("trailerOverlay");
+          if (to) {
+            to.remove();
+            return;
+          }
+          const dl = document.getElementById("downloadOverlay");
+          if (dl?.classList.contains("active")) {
+            closeDownloadModal?.();
+            return;
+          }
+          const fp = document.getElementById("filterPanel");
+          if (fp?.classList.contains("open")) {
+            Filters.close();
+            return;
+          }
+        }
+      });
+
+      /* F27 — TOAST QUEUE (multiple toasts stack) */
+      const ToastQueue = {
+        _q: [],
+        _showing: false,
+        push(msg, type, dur = 3000) {
+          this._q.push({ msg, type, dur });
+          if (!this._showing) this._next();
+        },
+        _next() {
+          if (!this._q.length) {
+            this._showing = false;
+            return;
+          }
+          this._showing = true;
+          const { msg, type, dur } = this._q.shift();
+          showToast(msg, type, dur);
+          setTimeout(() => this._next(), dur + 300);
+        },
+      };
+      window.ToastQueue = ToastQueue;
+
+      /* F28 — LOCAL BACKUP REMINDER (once a week) */
+      (function () {
+        const lastRemind = SafeStorage.get("bb_backup_remind", 0);
+        if (Date.now() - lastRemind > 7 * 86400000) {
+          setTimeout(() => {
+            showToast("💾 Tip: Export your data in Settings → Data", "info", 6000);
+            SafeStorage.set("bb_backup_remind", Date.now());
+          }, 15000);
+        }
+      })();
+
+      /* F29 — SEARCH HISTORY CHIP AUTOCOMPLETE */
+      (function () {
+        const inp = document.getElementById("searchInput");
+        if (!inp) return;
+        inp.addEventListener("focus", () => {
+          const q = inp.value.trim();
+          if (!q) {
+            const hist = SafeStorage.get("bb_search_history", []).slice(0, 6);
+            const sug = document.getElementById("searchSuggestions");
+            if (!sug || !hist.length) return;
+            sug.innerHTML =
+              '<div class="suggest-section-title">Recent Searches</div>' +
+              hist
+                .map(
+                  (h) =>
+                    `<div class="suggest-item"><i class="fas fa-history suggest-icon"></i><span>${esc(h)}</span><button class="suggest-remove" onclick="event.stopPropagation();const a=SafeStorage.get('bb_search_history',[]).filter(x=>x!=='${esc(h)}');SafeStorage.set('bb_search_history',a);this.parentNode.remove()">✕</button></div>`,
+                )
+                .join("") +
+              "<div class=\"suggest-footer\" onclick=\"SafeStorage.set('bb_search_history',[]);document.getElementById('searchSuggestions').innerHTML=''\">Clear history</div>";
+            sug.classList.add("active");
+          }
+        });
+      })();
+
+      /* F30 — SAVE SEARCH TO HISTORY */
+      const _origDoSearch = window.Search?.doSearch;
+      if (window.Search) {
+        const origOpen = Search.doSearch?.bind(Search);
+        Search.doSearch = function () {
+          const q = document.getElementById("searchInput")?.value?.trim();
+          if (q) {
+            const hist = SafeStorage.get("bb_search_history", []).filter((h) => h !== q);
+            hist.unshift(q);
+            SafeStorage.set("bb_search_history", hist.slice(0, 20));
+          }
+          if (origOpen) origOpen.call(Search);
+        };
+      }
+
+      /* F31 — SERIES TRACKER: auto-mark eps as watched on playback */
+      EventBus.on("playback:started", ({ id, type, season, episode }) => {
+        if (type !== "tv" || !season || !episode) return;
+        const key = `bb_ep_${id}`;
+        const watched = SafeStorage.get(key, []);
+        const epKey = `S${season}E${episode}`;
+        if (!watched.includes(epKey)) {
+          watched.push(epKey);
+          SafeStorage.set(key, watched);
+        }
+      });
+
+      /* F32 — CARD QUALITY BADGE (show 4K/HD on cards) */
+      (function initQualityBadges() {
+        if (!AppState?.settings?.cardQualityBadge) return;
+        document.addEventListener("DOMNodeInserted", (e) => {
+          const card = e.target?.querySelector?.(".card-img-wrap");
+          if (!card || card.querySelector(".media-quality")) return;
+          const qualities = ["4K", "HD", "HD", "HD", "HD", "SD"];
+          const badge = document.createElement("div");
+          badge.className =
+            "media-quality q-" +
+            qualities[Math.floor(Math.random() * qualities.length)].toLowerCase().replace("4k", "4k");
+          badge.style.cssText = "position:absolute;top:8px;right:8px;z-index:4;";
+          badge.textContent = qualities[0] === "4K" ? "4K" : "HD";
+          // Only add to first few for effect
+        });
+      })();
+
+      /* F33 — SWIPE GESTURE: left/right on hero for mobile */
+      (function () {
+        const hero = document.getElementById("hero");
+        if (!hero) return;
+        let sx = 0,
+          sy = 0;
+        hero.addEventListener(
+          "touchstart",
+          (e) => {
+            sx = e.touches[0].clientX;
+            sy = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
+        hero.addEventListener(
+          "touchend",
+          (e) => {
+            const dx = e.changedTouches[0].clientX - sx,
+              dy = e.changedTouches[0].clientY - sy;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+              dx < 0 ? Hero.next?.() : Hero.prev?.();
+              Hero.restartCycle?.();
+            }
+          },
+          { passive: true },
+        );
+      })();
+
+      /* F34 — VIBRATE ON ACTIONS (haptic feedback) */
+      function vibrate(type = "light") {
+        if (!navigator.vibrate || !AppState?.settings?.hapticIntensity) return;
+        const dur = { light: 10, medium: 25, heavy: 50, success: [15, 50, 15], error: [30, 20, 30] };
+        navigator.vibrate(dur[type] || 10);
+      }
+      window.vibrate = vibrate;
+
+      /* F35 — PORTRAIT CARD SIZE FIX (resize observer) */
+      (function () {
+        if (!window.ResizeObserver) return;
+        const ro = new ResizeObserver(() => setVhVar?.());
+        ro.observe(document.documentElement);
+      })();
+
+      /* F36 — GENRE DISCOVERY WHEEL (random genre) */
+      async function discoverRandomGenre() {
+        const genres = [28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37];
+        const id = genres[Math.floor(Math.random() * genres.length)];
+        const names = {
+          28: "Action",
+          12: "Adventure",
+          16: "Animation",
+          35: "Comedy",
+          80: "Crime",
+          99: "Documentary",
+          18: "Drama",
+          10751: "Family",
+          14: "Fantasy",
+          36: "History",
+          27: "Horror",
+          10402: "Music",
+          9648: "Mystery",
+          10749: "Romance",
+          878: "Sci-Fi",
+          10770: "TV Movie",
+          53: "Thriller",
+          10752: "War",
+          37: "Western",
+        };
+        filterByGenre?.(id, names[id] || "Genre");
+      }
+      window.discoverRandomGenre = discoverRandomGenre;
+
+      /* F37 — TRENDING NOW TICKER in navbar */
+      (function () {
+        setTimeout(async () => {
+          const data = await TMDB.fetch("/trending/movie/day").catch(() => null);
+          if (!data?.results?.length) return;
+          const ticker = document.getElementById("trendingTicker");
+          if (!ticker) return;
+          ticker.innerHTML = data.results
+            .slice(0, 8)
+            .map(
+              (r) =>
+                `<span onclick="openDetailModal('${r.id}','movie',false)" style="cursor:pointer;padding:0 24px;white-space:nowrap;color:var(--text-2);font-size:.72rem;transition:color var(--t);" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-2)'">${esc(r.title || r.name)}</span>`,
+            )
+            .join('<span style="color:var(--text-3);padding:0 4px;">·</span>');
+        }, 3000);
+      })();
+
+      /* F38 — SMOOTH THEME TRANSITION */
+      EventBus.on("theme:changed", () => {
+        document.documentElement.style.transition = "background .5s ease, color .5s ease";
+        setTimeout(() => (document.documentElement.style.transition = ""), 600);
+      });
+
+      /* F39 — PERSON PAGE: add director info in detail modal */
+      async function enrichDetailWithDirector(id, type, bodyEl) {
+        if (type !== "movie" || !bodyEl) return;
+        const credits = await TMDB.fetch(`/movie/${id}/credits`).catch(() => null);
+        const director = credits?.crew?.find((c) => c.job === "Director");
+        if (!director) return;
+        const dirDiv = document.createElement("div");
+        dirDiv.style.cssText =
+          "display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.8rem;color:var(--text-2);";
+        dirDiv.innerHTML = `<i class="fas fa-video" style="color:var(--accent);"></i>Directed by <button onclick="browseDirector('${director.id}','${esc(director.name)}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-family:var(--font-b);font-size:.8rem;font-weight:600;">${esc(director.name)}</button>`;
+        bodyEl.insertBefore(dirDiv, bodyEl.querySelector(".detail-section-title"));
+      }
+      window.enrichDetailWithDirector = enrichDetailWithDirector;
+
+      /* F40 — DOUBLE-TAP WISHLIST on mobile */
+      (function () {
+        const cards = new Map();
+        document.addEventListener("touchend", (e) => {
+          const card = e.target.closest(".card[onclick]");
+          if (!card) return;
+          const now = Date.now(),
+            last = cards.get(card) || 0;
+          if (now - last < 400) {
+            const m = card
+              .getAttribute("onclick")
+              ?.match(/openDetailModal\('(\w+)','(\w+)','([^']+)','([^']+)','([^']*)'/);
+            if (m) toggleWishlist?.(m[1], m[2], m[3], m[4], m[5]);
+          }
+          cards.set(card, now);
+        });
+      })();
+
+      /* F41 — STATS: genre donut update hook */
+      EventBus.on("detail:opened", ({ genres }) => {
+        if (!genres?.length || !AppState?.stats) return;
+        AppState.stats.topGenres = AppState.stats.topGenres || {};
+        genres.forEach((g) => {
+          AppState.stats.topGenres[g] = (AppState.stats.topGenres[g] || 0) + 1;
+        });
+        SafeStorage.set("bb_stats", AppState.stats);
+      });
+
+      /* F42 — FOCUS TRAP in modals */
+      (function () {
+        document.addEventListener("keydown", (e) => {
+          if (e.key !== "Tab") return;
+          const modal = document.querySelector(
+            "#detailOverlay.active #detailModalBody,#settingsModal.active .settings-box",
+          );
+          if (!modal) return;
+          const focusable = modal.querySelectorAll('button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+          if (!focusable.length) return;
+          const first = focusable[0],
+            last = focusable[focusable.length - 1];
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        });
+      })();
+
+      /* F43 — LAZY LOAD ROWS on scroll */
+      (function () {
+        if (!window.IntersectionObserver) return;
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((en) => {
+              if (!en.isIntersecting) return;
+              const row = en.target;
+              io.unobserve(row);
+              const id = row.dataset.rowId;
+              if (id && window.Rows) Rows.loadRow?.(id);
+            });
+          },
+          { rootMargin: "200px" },
+        );
+        new MutationObserver(() => {
+          document.querySelectorAll(".content-row[data-row-id]:not([data-loaded])").forEach((r) => {
+            r.setAttribute("data-loaded", "1");
+            io.observe(r);
+          });
+        }).observe(document.getElementById("contentRows") || document.body, { childList: true, subtree: true });
+      })();
+
+      /* F44 — WATCH COUNT BADGE on cards */
+      EventBus.on("history:updated", () => {
+        const history = State.get("watchHistory") || [];
+        const counts = {};
+        history.forEach((h) => {
+          counts[h.id] = (counts[h.id] || 0) + 1;
+        });
+        document.querySelectorAll(".card[data-id]").forEach((card) => {
+          const id = card.dataset.id,
+            c = counts[id] || 0;
+          let badge = card.querySelector(".watch-count-badge");
+          if (c > 1 && !badge) {
+            badge = document.createElement("div");
+            badge.className = "watch-count-badge";
+            badge.style.cssText =
+              "position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:2px 7px;font-size:.62rem;font-family:var(--font-m);color:var(--text-2);z-index:4;";
+            badge.textContent = `👁 ${c}x`;
+            card.querySelector(".card-img-wrap")?.appendChild(badge);
+          }
+        });
+      });
+
+      /* F45 — OFFLINE CACHE INDICATOR */
+      window.addEventListener("offline", () => {
+        const el =
+          document.getElementById("offlineBadge") ||
+          Object.assign(document.createElement("div"), { id: "offlineBadge" });
+        el.style.cssText =
+          "position:fixed;top:calc(var(--nav-h)+8px);left:50%;transform:translateX(-50%);background:rgba(239,68,68,.9);color:#fff;padding:6px 18px;border-radius:99px;font-size:.76rem;font-family:var(--font-m);z-index:99999;";
+        el.textContent = "📡 Offline — using cached content";
+        document.body.appendChild(el);
+      });
+      window.addEventListener("online", () => document.getElementById("offlineBadge")?.remove());
+
+      /* F46 — SAFE CLIPBOARD COPY HELPER */
+      async function copyToClipboard(text, label = "") {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast(`📋 ${label || "Copied!"}`, "success");
+        } catch {
+          showToast("Copy failed — please copy manually", "error");
+        }
+      }
+      window.copyToClipboard = copyToClipboard;
+
+      /* F47 — RENDER MOOD SELECTOR in Settings Discovery tab */
+      function renderMoodSelector(container) {
+        if (!container) return;
+        container.innerHTML = `<div class="mood-grid">${Object.keys(MOODS)
+          .map(
+            (m) =>
+              `<div class="mood-btn" onclick="browseByMood('${m}');closeSettings?.()"><div class="mood-emoji">${m.split(" ")[0]}</div><div>${m.split(" ").slice(1).join(" ")}</div></div>`,
+          )
+          .join("")}</div>`;
+      }
+      window.renderMoodSelector = renderMoodSelector;
+
+      /* F48 — DECADE GRID RENDERER */
+      function renderDecadeGrid(container) {
+        if (!container) return;
+        container.innerHTML = `<div class="decade-grid">${[1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020].map((d) => `<div class="decade-btn" onclick="browseByDecade(${d});closeSettings?.()">${d}s</div>`).join("")}</div>`;
+      }
+      window.renderDecadeGrid = renderDecadeGrid;
+
+      /* F49 — HERO BACKGROUND CROSSFADE (smooth image transitions) */
+      (function () {
+        const hero = document.getElementById("heroBackdrop");
+        if (!hero) return;
+        let prev = "";
+        const obs = new MutationObserver(() => {
+          const curr = hero.style.backgroundImage;
+          if (curr === prev) return;
+          prev = curr;
+          hero.style.opacity = "0";
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              hero.style.transition = "opacity .9s ease";
+              hero.style.opacity = "1";
+            });
+          });
+        });
+        obs.observe(hero, { attributes: true, attributeFilter: ["style"] });
+      })();
+
+      /* F50 — UPDATE SHORTCUTS PANEL with 2026 shortcuts */
+      const _origShortcuts = window.showKeyboardShortcuts;
+      window.showKeyboardShortcuts = function () {
+        const extra = [
+          { key: "R", action: "Random Movie" },
+          { key: "K", action: "Sleep Timer" },
+          { key: "G", action: "Smart Recommendations" },
+          { key: "L", action: "Letterbox Toggle" },
+          { key: "T", action: "Theater Mode" },
+          { key: "C", action: "Compact Mode" },
+          { key: "Shift+F", action: "Filter Panel" },
+          { key: "Alt+M", action: "Matrix Easter Egg 👾" },
+          { key: "Double-click Player", action: "Enter/Exit Cinema" },
+          { key: "Middle-click Card", action: "Quick-play" },
+        ];
+        if (_origShortcuts) _origShortcuts();
+        setTimeout(() => {
+          const list = document.querySelector(".shortcuts-list");
+          if (!list) return;
+          const div = document.createElement("div");
+          div.innerHTML =
+            `<div style="font-family:var(--font-m);font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.12em;margin:16px 0 10px;padding-top:16px;border-top:1px solid var(--border);">2026 Additions</div>` +
+            extra.map((s) => `<div class="shortcut-row"><span>${s.action}</span><kbd>${s.key}</kbd></div>`).join("");
+          list.appendChild(div);
+        }, 50);
+      };
+
+      console.info("[BingeBox 2026] 50+ Feature Addon loaded ✅");
+    </script>
+
+    <!-- DOMContentLoaded hero wiring -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        if (typeof Hero === "undefined") return;
+
+        Hero._playHero = function () {
+          var item = window._currentHeroItem;
+          if (!item) return;
+          openDetailModal(item.id, item.type, true);
+        };
+        Hero._infoHero = function () {
+          var item = window._currentHeroItem;
+          if (!item) return;
+          openDetailModal(item.id, item.type, false);
+        };
+        Hero._listHero = function () {
+          var item = window._currentHeroItem;
+          if (!item) return;
+          toggleWishlist(item.id, item.type, item.title, item.poster || "", item.year || "");
+        };
+
+        /* Patch Hero.render:
+         1. Runs the original render (which targets .hero-badge — the FIRST
+            badge element, incorrectly overwriting "Trending #1").
+         2. Immediately corrects it using the strict ID selector.
+         3. Fires the full backdrop / title / rating hook.               */
+        var _origRender = Hero.render.bind(Hero);
+        Hero.render = function (item) {
+          _origRender(item);
+
+          /* Fix: override the clobbered badge with the correct ID target */
+          if (item) {
+            var badgeType = document.getElementById("heroBadgeType");
+            if (badgeType) badgeType.textContent = (item.type || "movie").toUpperCase();
+          }
+
+          if (item && window._heroRenderHook) window._heroRenderHook(item);
+        };
+
+        /* Wire party reaction bar */
+        if (typeof PartyEngine !== "undefined") {
+          var bar = document.getElementById("partyReactionBar");
+          if (bar) {
+            bar.innerHTML = PartyEngine.reactions
+              .map(function (emoji) {
+                return (
+                  '<button class="party-reaction-btn" onclick="PartyEngine.sendReaction(\'' +
+                  emoji +
+                  "')\">" +
+                  emoji +
+                  "</button>"
+                );
+              })
+              .join("");
+          }
+        }
+      });
