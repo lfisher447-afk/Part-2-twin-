@@ -1,7 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/v1/tmdb/batch", "destination": "/api/tmdb/[...path]" },
+    { "source": "/api/v1/tmdb/batch", "destination": "/api/tmdb" },
     { "source": "/api/v1/tmdb/:path*", "destination": "/api/tmdb/:path*" },
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/health", "destination": "/api/health" }
@@ -18,7 +18,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-BingeBox-Server", "value": "Omega/5.1-Vercel" }
+        { "key": "X-BingeBox-Server", "value": "Omega/5.1-Vercel" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
