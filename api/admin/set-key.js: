@@ -1,0 +1,11 @@
+'use strict';
+module.exports = (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).end();
+  // In production, gate this with a secret header check
+  const { key } = req.body || {};
+  if (!key || key.length < 10) return res.status(400).json({ error: 'Invalid key' });
+  process.env.TMDB_API_KEY = key; // runtime only — resets on cold start
+  res.json({ ok: true });
+};
