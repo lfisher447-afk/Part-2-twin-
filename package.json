@@ -5,8 +5,10 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
-  "engines": { "node": ">=18.x" },
-  "dependencies": {},          // ← no deps needed for Vercel serverless
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {},
   "devDependencies": {
     "vercel": "latest"
   }
