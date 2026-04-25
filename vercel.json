@@ -1,27 +1,26 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/api/v1/tmdb/batch", "destination": "/api/tmdb/[...path]" },
     { "source": "/api/v1/tmdb/:path*", "destination": "/api/tmdb/:path*" },
-    { "source": "/health",             "destination": "/api/health"       }
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/health", "destination": "/api/health" }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "*" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, X-BingeBox-Client, X-BingeBox-Version" },
-        { "key": "X-BingeBox-Server",            "value": "Omega/4.0-Vercel" },
-        { "key": "X-Content-Type-Options",       "value": "nosniff" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, X-BingeBox-Client, X-BingeBox-Version" }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options",         "value": "DENY" },
-        { "key": "X-Content-Type-Options",  "value": "nosniff" },
-        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy",      "value": "camera=(), microphone=(self), geolocation=(), fullscreen=(self), autoplay=(self), encrypted-media=(self)" }
+        // ✅ REMOVE X-Frame-Options DENY — it blocks your own iframes
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ],
