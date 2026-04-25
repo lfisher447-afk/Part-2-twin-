@@ -1,12 +1,14 @@
 {
   "name": "bingebox-omega",
   "version": "5.1.0",
+  "private": true,
   "scripts": {
+    "vercel-build": "echo 'Frontend is static. No build required. API routes will be deployed automatically.'",
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
   "engines": {
-    "node": ">=18.x"
+    "node": "20.x"
   },
   "dependencies": {},
   "devDependencies": {
