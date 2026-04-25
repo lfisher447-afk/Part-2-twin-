@@ -18,7 +18,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        // ✅ REMOVE X-Frame-Options DENY — it blocks your own iframes
+        { "key": "X-BingeBox-Server", "value": "Omega/5.1-Vercel" }
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
