@@ -22,7 +22,8 @@ const TTL_MAP = new Map([
 ['/discover',    180],   //  3 mins
 ['/search',       90],   //  1.5 mins
 ['/trending',     60],   //  1 min
-});
+['/Home',     120],   //  1 min
+  });
 // Determine TTL based on the TMDB path
 const getTTL = (path) => {
   for (const [key, ttl] of TTL_MAP.entries()) {
