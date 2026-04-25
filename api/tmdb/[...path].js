@@ -1,7 +1,8 @@
 'use strict';
 // BingeBox Omega 5.1 — /api/tmdb/[...path].js (Production Ready)
 
-const TMDB_KEY = process.env.TMDB_API_KEY || '15d2ea6d0dc1d476efbca3eba2b9bbfb'; // Keep your fallback if you rely on it
+const TMDB_KEY = process.env.TMDB_API_KEY;
+if (!TMDB_KEY) throw new Error('TMDB_API_KEY env var is not set');
 const TMDB_HOST = 'https://api.themoviedb.org/3';
 
 if (!TMDB_KEY) {
